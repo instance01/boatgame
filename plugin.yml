@@ -1,0 +1,43 @@
+name: comzeboatgame
+main: com.comze_instancelabs.boatgame.Main
+version: 1.4.5
+author: instancelabs
+softdepend: [Vault]
+permissions:
+  boatgame.*:
+    description: Gives access to all boatgame commands.
+    children:
+      boatgame.sign: true
+      boatgame.create: true
+      boatgame.setspawn: true
+      boatgame.setlobby: true
+      boatgame.cleararena: true
+      boatgame.list: true
+      boatgame.reload: true
+      boatgame.remove: true
+  boatgame.sign:
+    description: Gives access to create signs for joining games.
+  boatgame.create:
+    description: Gives access to the creation of arenas.
+  boatgame.setspawn:
+    description: Gives access to set the spawns.
+  boatgame.setlobby:
+    description: Gives access to set the lobby.
+  boatgame.cleararena:
+    description: Gives access to clear the arena.
+  boatgame.remove:
+    description: Gives access to remove the arena. 
+  boatgame.list:
+    description: Gives access to listing all arenas. 
+  boatgame.reload:
+    description: Gives access to reloading the configuration. 
+commands:
+   seabattle:
+      description: Main command
+      usage: /seabattle [name]
+   sb:
+      description: Main command
+      usage: /sb [name]
+   cleararena-boat:
+      description: Clear an arena.
+      usage: /cleararena [name]
