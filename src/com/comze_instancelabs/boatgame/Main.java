@@ -361,10 +361,31 @@ public final class Main extends JavaPlugin implements Listener{
                             	String d = s.getLine(3).split("/")[0];
                             	getLogger().info(d);
                             	int bef = Integer.parseInt(d);
-                            	if(bef > 0){
+                            	if(bef > 1){
                             		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
                             		s.update();
                             		getLogger().info(s.getLine(3));
+                            	}
+                            	if(bef == 2){ // one player left -> gets prize
+                            		Player last = this.getKeyByValue(arenap, "arena");
+                            		                            		
+                            		if(last != null){
+                                		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
+                	            		if(economy){
+                	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
+                	            			if(!r.transactionSuccess()) {
+                	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
+                	                            //sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
+                	                        }
+                	            		}else{
+                	            			int itemid = getConfig().getInt("config.itemreward_itemid");
+                	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
+                		            		if(itemid != 0){
+                		            			last.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemid_amount));
+                		            			last.updateInventory();
+                		                    }
+                	            		}	
+                            		}
                             	}
                             	if(bef < 2){
                             		s.setLine(2, "§2Join");
@@ -861,9 +882,42 @@ public final class Main extends JavaPlugin implements Listener{
             	String d = s.getLine(3).split("/")[0];
             	getLogger().info(d);
             	int bef = Integer.parseInt(d);
-            	if(bef > 0){
+            	if(bef > 1){
             		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
             		s.update();
+            	}
+            	if(bef == 2){ // 1 player left -> gets prize
+            		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
+            		s.setLine(2, "§2Join");
+            		s.update();
+            		try{
+            			getServer().getScheduler().cancelTask(canceltask.get(p2));
+            		}catch(Exception e){
+            			
+            		}
+            		gamestarted.put(arena, false);
+            		secs_.remove(arena);
+            		arenaspawn.remove(arena);
+            		
+            		Player last = this.getKeyByValue(arenap, "arena");
+            		
+            		if(last != null){
+                		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
+	            		if(economy){
+	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
+	            			if(!r.transactionSuccess()) {
+	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
+	                            //sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
+	                        }
+	            		}else{
+	            			int itemid = getConfig().getInt("config.itemreward_itemid");
+	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
+		            		if(itemid != 0){
+		            			last.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemid_amount));
+		            			last.updateInventory();
+		                    }
+	            		}	
+            		}
             	}
             	if(bef < 2){
             		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
@@ -877,8 +931,6 @@ public final class Main extends JavaPlugin implements Listener{
             		gamestarted.put(arena, false);
             		secs_.remove(arena);
             		arenaspawn.remove(arena);
-            		
-            		//TODO: Last man standing -> prize
             	}
             }
             
