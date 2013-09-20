@@ -13,6 +13,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -448,7 +449,7 @@ public final class Main extends JavaPlugin implements Listener{
     
     @EventHandler
 	public void onSignUse(PlayerInteractEvent event)
-	{	
+	{
 	    if (event.hasBlock() && event.getAction() == Action.RIGHT_CLICK_BLOCK)
 	    {
 	        if (event.getClickedBlock().getType() == Material.SIGN_POST || event.getClickedBlock().getType() == Material.WALL_SIGN)
@@ -537,6 +538,7 @@ public final class Main extends JavaPlugin implements Listener{
             	        		                	for(Player p : arenap.keySet()){
             	        		                		if(arenap.get(p).equalsIgnoreCase(arena)){
             	        		                			count += 1;
+            	        		                			p.playSound(p.getLocation(), Sound.CAT_MEOW, 1, 0);
             	        		                		}
             	        		                	}
             	        		                	s.setLine(3, Integer.toString(count)  + "/" + getConfig().getString("config.maxplayers"));
@@ -559,7 +561,7 @@ public final class Main extends JavaPlugin implements Listener{
                 			arenap.put(event.getPlayer(), arena);
                 			hp.put(event.getPlayer(), getConfig().getInt("config.boatlifes"));
                 			php.put(event.getPlayer(), getConfig().getInt("config.playerlifes"));
-                			event.getPlayer().setExp(0.99F);
+                			//event.getPlayer().setExp(0.99F);
                     		//spawn the player and give him boatballs + boat
                             //Location t = new Location(event.getPlayer().getWorld(), getConfig().getDouble(arena + ".spawn2.x"), getConfig().getDouble(arena + ".spawn2.y"), getConfig().getDouble(arena + ".spawn2.z"));
                 			String count = Integer.toString(arenaspawn.get(arena));
@@ -648,7 +650,7 @@ public final class Main extends JavaPlugin implements Listener{
         				}else{
         					Integer f = hp.get(th);
     		        		hp.put(th, f - 1);
-    		        		th.setExp(th.getExp() - (1 / getConfig().getInt("config.boatlifes")));
+    		        		//th.setExp(th.getExp() - (1 / getConfig().getInt("config.boatlifes")));
         				}
         			}else{
 	        			Integer f = hp.get(th);
@@ -656,7 +658,7 @@ public final class Main extends JavaPlugin implements Listener{
 	        				hp.put(th, 1);
 	        			}
 		        		hp.put(th, f - 1);
-		        		th.setExp(th.getExp() - (1 / getConfig().getInt("config.boatlifes")));
+		        		//th.setExp(th.getExp() - (1 / getConfig().getInt("config.boatlifes")));
         			}
 	        		
         		}else{
@@ -868,7 +870,7 @@ public final class Main extends JavaPlugin implements Listener{
             		s.update();
             	}
             	if(bef < 2){
-            		//TODO !!
+            		//TODO !
             		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
             		s.setLine(2, "§2Join");
             		s.update();
@@ -1100,7 +1102,6 @@ public final class Main extends JavaPlugin implements Listener{
     
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-    	//event.setCancelled(true);
         Player p = (Player)event.getWhoClicked();
         if(p != null && arenap.containsKey(p)){
         	event.setCancelled(true);
