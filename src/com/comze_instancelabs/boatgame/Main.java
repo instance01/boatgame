@@ -121,6 +121,10 @@ public final class Main extends JavaPlugin implements Listener{
 		getConfig().addDefault("config.announce_winners", true);
 		//getConfig().addDefault("config.saveandclearinventory", false);
 		
+		// TODO: new
+		getConfig().addDefault("config.snowballstacks_amount", 3);
+		
+		
 		getConfig().addDefault("strings.ball_name", "§2BoatBall");
 		getConfig().addDefault("strings.nopermission", "§4You don't have permission!");
 		getConfig().addDefault("strings.createarena", "§2Arenaname saved. Now create two spawn points with /sb setspawn <count> <name> and a lobby spawn with /sb setlobby <name>.");
@@ -148,7 +152,6 @@ public final class Main extends JavaPlugin implements Listener{
 			economy = true;
 			if (!setupEconomy()) {
 	            getLogger().severe(String.format("[%s] - No iConomy dependency found! Disabling Economy.", getDescription().getName()));
-	            //getServer().getPluginManager().disablePlugin(this);
 	            economy = false;
 	        }
 		}
@@ -173,18 +176,15 @@ public final class Main extends JavaPlugin implements Listener{
 
     @Override
     public void onDisable() {
-    	getLogger().info("Disabling.");
-    	//TODO: add code to remove all
     	for(String arena : arenap.values()){
     		for(Player p2 : this.getKeysByValue(arenap, arena)){
         		//remove vehicle, remove snowballs, tp away
     	    	p2.getVehicle().remove();
     	    	
     	    	p2.updateInventory();
-    	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-    	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-    	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-    	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
+    	    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+    				p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+    			}
     	    	p2.getInventory().setContents(pinv.get(p2));
     	    	p2.updateInventory();
     	    	
@@ -197,7 +197,7 @@ public final class Main extends JavaPlugin implements Listener{
 	        		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
 	    	    	Location t = new Location(w, x, y, z);
 	        		
-	        		BukkitTask task = new futask(p2, t, false).runTaskLater(this, 20);
+	        		BukkitTask task = new futask(p2, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
     	    	}
     	    	arenap.remove(p2);
     	    	
@@ -298,7 +298,6 @@ public final class Main extends JavaPlugin implements Listener{
     				}else if(action.equalsIgnoreCase("reset") && args.length > 1){
     					if (sender.hasPermission("boatgame.cleararena"))
     	                {
-    						//TODO Reset function
 	    	    			String arena = args[1];
 	    	    			while (arenap.values().remove(arena));
 	    	    			gamestarted.put(arena, false);
@@ -327,10 +326,9 @@ public final class Main extends JavaPlugin implements Listener{
     				    	p2.getInventory().setContents(pinv.get(p2));
     				    	//p2.sendMessage(pinv.get(p2).toString());
     				    	p2.updateInventory();
-    				    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-    				    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-    				    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-    				    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
+    				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+    		    				p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+    		    			}
     				    	p2.getInventory().setContents(pinv.get(p2));
     				    	p2.updateInventory();
     				    	
@@ -342,7 +340,7 @@ public final class Main extends JavaPlugin implements Listener{
     			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
     				    	Location t = new Location(w, x, y, z);
     			    		
-    			    		BukkitTask task = new futask(p2, t, false).runTaskLater(this, 40);
+    			    		BukkitTask task = new futask(p2, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 40);
     				    	
     				    	arenap.remove(p2);
     				    	
@@ -577,10 +575,9 @@ public final class Main extends JavaPlugin implements Listener{
             				p.updateInventory();
             				
             				p.getInventory().clear();
-                            event.getPlayer().getInventory().addItem(selectwand);
-                            event.getPlayer().getInventory().addItem(selectwand);
-                            event.getPlayer().getInventory().addItem(selectwand);
-                            event.getPlayer().getInventory().addItem(selectwand);
+            				for(int i_ = 0; i_ < getConfig().getInt("config.snowballstacks_amount"); i_++){
+            					event.getPlayer().getInventory().addItem(selectwand);	
+            				}
                             event.getPlayer().updateInventory();
                             
                             Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
@@ -774,13 +771,13 @@ public final class Main extends JavaPlugin implements Listener{
         				    	
         				    	Location t2 = new Location(w2, x, y, z);
         				    	//otp.teleport(t2);
-        				        BukkitTask task1 = new futask(otp, t2, false).runTaskLater(this, count);
+        				        BukkitTask task1 = new futask(otp, t2, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, count);
         				        count += 20;
         				        
         				        otp.updateInventory();
-        				        otp.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-        				        otp.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-        				        otp.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
+        				        for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+        		    				otp.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+        		    			}
         				        otp.getInventory().setContents(pinv.get(otp));
         				        otp.updateInventory();
         				        
@@ -811,9 +808,9 @@ public final class Main extends JavaPlugin implements Listener{
         			    	//p.teleport(t);
         			    	p.getInventory().setContents(pinv.get(p));
         			    	if(economy){
-        			    		BukkitTask task = new futask(p, t, true).runTaskLater(this, count);
+        			    		BukkitTask task = new futask(p, t, true, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, count);
         			    	}else{
-        			    		BukkitTask task = new futask(p, t, true, getConfig().getInt("config.itemreward_itemid"), getConfig().getInt("config.itemreward_amount")).runTaskLater(this, count);
+        			    		BukkitTask task = new futask(p, t, true, getConfig().getInt("config.itemreward_itemid"), getConfig().getInt("config.itemreward_amount"), getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, count);
         			    	}
         			    	
         			    	while (arenap.values().remove(arena));
@@ -845,10 +842,9 @@ public final class Main extends JavaPlugin implements Listener{
 	    	p2.getVehicle().remove();
 	    	
 	    	p2.updateInventory();
-	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-	    	p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
+	    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+				p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+			}
 	    	p2.getInventory().setContents(pinv.get(p2));
 	    	p2.updateInventory();
 	    	
@@ -870,7 +866,6 @@ public final class Main extends JavaPlugin implements Listener{
             		s.update();
             	}
             	if(bef < 2){
-            		//TODO !
             		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
             		s.setLine(2, "§2Join");
             		s.update();
@@ -882,6 +877,8 @@ public final class Main extends JavaPlugin implements Listener{
             		gamestarted.put(arena, false);
             		secs_.remove(arena);
             		arenaspawn.remove(arena);
+            		
+            		//TODO: Last man standing -> prize
             	}
             }
             
@@ -901,7 +898,7 @@ public final class Main extends JavaPlugin implements Listener{
     		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
 	    	Location t = new Location(w, x, y, z);
     		
-    		BukkitTask task = new futask(event.getPlayer(), t, false).runTaskLater(this, 60);
+    		BukkitTask task = new futask(event.getPlayer(), t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 60);
     		//getLogger().info("hoping to tp him away ;)");
     		tpthem.remove(event.getPlayer().getName());
     	}

@@ -15,19 +15,22 @@ public class futask extends BukkitRunnable {
 	private boolean update = true;
 	private int itemid = 0;
 	private int amount = 0;
+	private int snowballstacks = 0;
 	
-    public futask(Player pla, Location loc, boolean t) {
+    public futask(Player pla, Location loc, boolean t, int snowballstacks_amount) {
     	player = pla;
     	locat = loc;
     	update = t;
+    	snowballstacks = snowballstacks_amount;
     }
     
-    public futask(Player pla, Location loc, boolean t, int itemreward_itemid, int itemreward_amount) {
+    public futask(Player pla, Location loc, boolean t, int itemreward_itemid, int itemreward_amount, int snowballstacks_amount) {
     	player = pla;
     	locat = loc;
     	update = t;
     	itemid = itemreward_itemid;
     	amount = itemreward_amount;
+    	snowballstacks = snowballstacks_amount;
     }
  
     public void run() {
@@ -44,15 +47,14 @@ public class futask extends BukkitRunnable {
         	player.updateInventory();
         }
     	
-        // What you want to schedule goes here
         tpaway(player, locat);
         
         player.updateInventory();
         player.getInventory().addItem(new ItemStack(Material.SNOW_BALL, 1));
         player.updateInventory();
-        player.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-        player.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
-        player.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));
+        for(int i_ = 0; i_ < snowballstacks + 1; i_++){
+			player.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+		}
         player.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 1));
         player.updateInventory();
     }
