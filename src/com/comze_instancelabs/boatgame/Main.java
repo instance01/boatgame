@@ -402,7 +402,6 @@ public final class Main extends JavaPlugin implements Listener{
                                 			try{
                                     			getServer().getScheduler().cancelTask(canceltask.get(last));
                                     		}catch(Exception e_){
-                                    			//TODO
                                     		}
                                 		}
                                 		secs_.remove(arena);
@@ -829,9 +828,12 @@ public final class Main extends JavaPlugin implements Listener{
     		    			p.sendMessage(getConfig().getString("strings.won"));
     		    			
         			    	p.getVehicle().remove();
-        			    	p.getInventory().setHelmet(null);
-        			    	p.updateInventory();
         			    	
+        			    	if(getConfig().getBoolean("config.teams")){
+	        			    	p.getInventory().setHelmet(null);
+	        			    	p.updateInventory();	
+        			    	}
+
         			    	if(economy){
     	    			    	EconomyResponse r = econ.depositPlayer(p.getName(), getConfig().getDouble("config.entry_money") * arenap.size());
     	            			if(!r.transactionSuccess()) {
@@ -889,8 +891,10 @@ public final class Main extends JavaPlugin implements Listener{
         			    			otp.sendMessage(getConfig().getString("strings.lost"));
         			    		}
         			    		otp.getVehicle().remove();
-        			    		otp.getInventory().setHelmet(null);
-        			    		otp.updateInventory();
+        			    		if(getConfig().getBoolean("config.teams")){
+        			    			otp.getInventory().setHelmet(null);
+        			    			otp.updateInventory();
+            			    	}
         			    		
         				    	World w2 = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
         				    	
@@ -1180,8 +1184,15 @@ public final class Main extends JavaPlugin implements Listener{
 		if (event.getEntity() instanceof Snowball) {
 			Player p = (Player)event.getEntity().getShooter();
 			if(p != null){
-				if(arenap.containsKey(p) && !gamestarted.get(arenap.get(p))){
-					event.setCancelled(true);
+				if(arenap.containsKey(p)){
+					if(!gamestarted.get(arenap.get(p))){
+						event.setCancelled(true);	
+					}else{
+						if(!p.getInventory().contains(Material.SNOW_BALL)){
+							// player doesn't have any snowballs any more -> lose
+							//TODO
+						}
+					}
 				}
 			}
 		}
