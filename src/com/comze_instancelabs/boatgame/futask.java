@@ -1,5 +1,8 @@
 package com.comze_instancelabs.boatgame;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,7 +16,7 @@ public class futask extends BukkitRunnable {
 	private Player player;
 	private Location locat;
 	private boolean update = true;
-	private int itemid = 0;
+	private List<Integer> itemid = new ArrayList<Integer>();
 	private int amount = 0;
 	private int snowballstacks = 0;
 	
@@ -24,7 +27,7 @@ public class futask extends BukkitRunnable {
     	snowballstacks = snowballstacks_amount;
     }
     
-    public futask(Player pla, Location loc, boolean t, int itemreward_itemid, int itemreward_amount, int snowballstacks_amount) {
+    public futask(Player pla, Location loc, boolean t, List<Integer> itemreward_itemid, int itemreward_amount, int snowballstacks_amount) {
     	player = pla;
     	locat = loc;
     	update = t;
@@ -42,9 +45,12 @@ public class futask extends BukkitRunnable {
         	player.getInventory().setContents(Main.pinv.get(player));
         }
         player.updateInventory();
-        if(itemid != 0){
-        	player.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), amount));
-        	player.updateInventory();
+
+		if(itemid.size() > 0){
+			for(int id : itemid){
+				player.getInventory().addItem(new ItemStack(Material.getMaterial(id), amount));
+	        	player.updateInventory();
+			}
         }
     	
         tpaway(player, locat);

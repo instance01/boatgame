@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -111,7 +112,8 @@ public final class Main extends JavaPlugin implements Listener{
 		getConfig().addDefault("config.playerlifes", 1);
 		getConfig().addDefault("config.use_economy", true);
 		getConfig().addDefault("config.entry_money", 10.0);
-		getConfig().addDefault("config.itemreward_itemid", 364);
+		//getConfig().addDefault("config.itemreward_itemid", itemids);
+		getConfig().addDefault("config.itemreward_itemid", new Integer[] {364, 9});
 		getConfig().addDefault("config.itemreward_amount", 2);
 		getConfig().addDefault("config.maxplayers", 10);
 		getConfig().addDefault("config.minplayers", 2);
@@ -296,6 +298,7 @@ public final class Main extends JavaPlugin implements Listener{
     	                	sender.sendMessage(getConfig().getString("strings.nopermission"));
     	                }
     				}else if(action.equalsIgnoreCase("reset") && args.length > 1){
+    					getLogger().info("RESET");
     					if (sender.hasPermission("boatgame.cleararena"))
     	                {
 	    	    			String arena = args[1];
@@ -360,13 +363,13 @@ public final class Main extends JavaPlugin implements Listener{
                             if(s != null && s.getLine(3) != ""){
                             	String d = s.getLine(3).split("/")[0];
                             	getLogger().info(d);
-                            	int bef = Integer.parseInt(d);
+                            	Integer bef = Integer.parseInt(d);
                             	if(bef > 1){
                             		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
                             		s.update();
                             		getLogger().info(s.getLine(3));
                             	}
-                            	if(bef == 2){ // one player left -> gets prize
+                            	if(bef.equals(2)){ // one player left -> gets prize
                             		Player last = this.getKeyByValue(arenap, "arena");
                             		                            		
                             		if(last != null){
@@ -378,17 +381,21 @@ public final class Main extends JavaPlugin implements Listener{
                 	                            //sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
                 	                        }
                 	            		}else{
-                	            			int itemid = getConfig().getInt("config.itemreward_itemid");
+                	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
                 	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
-                		            		if(itemid != 0){
-                		            			last.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemid_amount));
-                		            			last.updateInventory();
+                	            			last.updateInventory();
+                		            		if(itemid.size() > 0){
+                		            			for(int id : itemid){
+                		            				last.getInventory().addItem(new ItemStack(Material.getMaterial(id), itemid_amount));
+                		            				last.updateInventory();
+                		            			}
                 		                    }
                 	            		}	
                             		}
                             	}
                             	if(bef < 2){
                             		s.setLine(2, "§2Join");
+                            		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
                             		s.update(); 
                             		arenaspawn.remove(arena);
                             		try{
@@ -423,6 +430,54 @@ public final class Main extends JavaPlugin implements Listener{
     					if(sender.hasPermission("boatgame.reload")){
 	    					this.reloadConfig();
 	    					sender.sendMessage(getConfig().getString("strings.reload"));
+    					}else{
+    						sender.sendMessage(getConfig().getString("strings.nopermission"));
+    					}
+    				}else if(action.equalsIgnoreCase("recreateconfig")){
+    					if(sender.hasPermission("boatgame.reload")){
+    						getConfig().addDefault("config.alwaysdropboat", true);
+    						getConfig().addDefault("config.invincibleboats", false);
+    						getConfig().addDefault("config.boatspeed_global", 0.4);
+    						getConfig().addDefault("config.boatspeed_arena", 0.4);
+    						getConfig().addDefault("config.boatlifes", 5);
+    						getConfig().addDefault("config.playerlifes", 1);
+    						getConfig().addDefault("config.use_economy", true);
+    						getConfig().addDefault("config.entry_money", 10.0);
+    						//getConfig().addDefault("config.itemreward_itemid", itemids);
+    						getConfig().addDefault("config.itemreward_itemid", new Integer[] {364, 9});
+    						getConfig().addDefault("config.itemreward_amount", 2);
+    						getConfig().addDefault("config.maxplayers", 10);
+    						getConfig().addDefault("config.minplayers", 2);
+    						getConfig().addDefault("config.starting_cooldown", 11);
+    						getConfig().addDefault("config.teams", false);
+    						getConfig().addDefault("config.auto_updating", true);
+    						getConfig().addDefault("config.announce_winners", true);
+    						//getConfig().addDefault("config.saveandclearinventory", false);
+    						getConfig().addDefault("config.snowballstacks_amount", 3);
+    						
+    						getConfig().addDefault("strings.ball_name", "§2BoatBall");
+    						getConfig().addDefault("strings.nopermission", "§4You don't have permission!");
+    						getConfig().addDefault("strings.createarena", "§2Arenaname saved. Now create two spawn points with /sb setspawn <count> <name> and a lobby spawn with /sb setlobby <name>.");
+    						getConfig().addDefault("strings.help1", "§2Seabattle help:");
+    						getConfig().addDefault("strings.help2", "§2Use '/sb createarena <name>' to create a new arena");
+    						getConfig().addDefault("strings.help3", "§2Use '/sb setlobby <name>' to set the lobby for an arena");
+    						getConfig().addDefault("strings.help4", "§2Use '/sb setspawn <count> <name>' to set a new spawn. <count> can be 1 or 2.");
+    						getConfig().addDefault("strings.lobbycreated", "§2Lobby successfully created!");
+    						getConfig().addDefault("strings.spawn", "§2Spawnpoint registered.");
+    						//getConfig().addDefault("strings.spawn2", "§2Second spawnpoint registered. Now create a join sign at the lobby (create a lobbyspawn if haven't done already) and start playing! :)");
+    						getConfig().addDefault("strings.spawnerror", "§4An error occured. Did you provide a number (1 or 2)?");
+    						getConfig().addDefault("strings.arenaremoved", "§4Arena removed.");
+    						getConfig().addDefault("strings.notenoughmoney", "§4You don't have enough money!");
+    						getConfig().addDefault("strings.won", "§2[BOATGAME] You won the game!");
+    						getConfig().addDefault("strings.lost", "§4[BOATGAME] You lost the game!");
+    						getConfig().addDefault("strings.lostlife", "§4[BOATGAME] You lost one life! Lifes left: ");
+    						getConfig().addDefault("strings.reload", "§2Boatgame config successfully reloaded.");
+    						getConfig().addDefault("strings.nothing", "§4This command action was not found.");
+    						
+    						getConfig().options().copyDefaults(true);
+    						this.saveDefaultConfig();
+    						this.saveConfig();
+	    					sender.sendMessage("§2Successfully recreated SeaBattle config.");
     					}else{
     						sender.sendMessage(getConfig().getString("strings.nopermission"));
     					}
@@ -634,6 +689,16 @@ public final class Main extends JavaPlugin implements Listener{
                             }
                             
             			}
+            			
+            			
+            			//Auto fix: If player rightclicks on a screwed boatgame sign, it "repairs" itself.
+            			//getLogger().info("ARENAP COUNT: " + Integer.toString(arenap.values().size()));
+                    	// no players in given arena anymore -> update sign
+            	    	if(!arenap.values().contains(arena)){
+            	    		s.setLine(2, "§2Join!");
+            	    		s.setLine(3, "0/" + Integer.toString(getConfig().getInt("config.maxplayers")));
+            	    		s.update();
+            	    	}
 	
 	                } //end of if s.getline .. [BOAT]
 	            }
@@ -831,7 +896,7 @@ public final class Main extends JavaPlugin implements Listener{
         			    	if(economy){
         			    		BukkitTask task = new futask(p, t, true, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, count);
         			    	}else{
-        			    		BukkitTask task = new futask(p, t, true, getConfig().getInt("config.itemreward_itemid"), getConfig().getInt("config.itemreward_amount"), getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, count);
+        			    		BukkitTask task = new futask(p, t, true, getConfig().getIntegerList("config.itemreward_itemid"), getConfig().getInt("config.itemreward_amount"), getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, count);
         			    	}
         			    	
         			    	while (arenap.values().remove(arena));
@@ -881,12 +946,12 @@ public final class Main extends JavaPlugin implements Listener{
             if(s != null && s.getLine(3) != ""){
             	String d = s.getLine(3).split("/")[0];
             	getLogger().info(d);
-            	int bef = Integer.parseInt(d);
+            	Integer bef = Integer.parseInt(d);
             	if(bef > 1){
             		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
             		s.update();
             	}
-            	if(bef == 2){ // 1 player left -> gets prize
+            	if(bef.equals(2)){ // 1 player left -> gets prize
             		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
             		s.setLine(2, "§2Join");
             		s.update();
@@ -912,6 +977,7 @@ public final class Main extends JavaPlugin implements Listener{
 	            		}else{
 	            			int itemid = getConfig().getInt("config.itemreward_itemid");
 	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
+	            			last.updateInventory();
 		            		if(itemid != 0){
 		            			last.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemid_amount));
 		            			last.updateInventory();
