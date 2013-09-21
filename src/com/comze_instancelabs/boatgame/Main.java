@@ -298,7 +298,6 @@ public final class Main extends JavaPlugin implements Listener{
     	                	sender.sendMessage(getConfig().getString("strings.nopermission"));
     	                }
     				}else if(action.equalsIgnoreCase("reset") && args.length > 1){
-    					getLogger().info("RESET");
     					if (sender.hasPermission("boatgame.cleararena"))
     	                {
 	    	    			String arena = args[1];
@@ -370,11 +369,34 @@ public final class Main extends JavaPlugin implements Listener{
                             		getLogger().info(s.getLine(3));
                             	}
                             	if(bef.equals(2)){ // one player left -> gets prize
-                            		Player last = this.getKeyByValue(arenap, "arena");
-                            		                            		
+                            		Player last = this.getKeyByValue(arenap, arena);
+                            		
                             		if(last != null){
                                 		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
-                	            		if(economy){
+                	            		
+                                		last.getVehicle().remove();
+                				    	
+                                		last.updateInventory();
+                                		last.getInventory().setContents(pinv.get(last));
+                				    	//p2.sendMessage(pinv.get(p2).toString());
+                                		last.updateInventory();
+                				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+                				    		last.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+                		    			}
+                				    	last.getInventory().setContents(pinv.get(last));
+                				    	last.updateInventory();
+
+                				    	Location t_ = new Location(w, x, y, z);
+                			    		
+                			    		BukkitTask task_ = new futask(last, t_, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 40);
+                				    	
+                				    	arenap.remove(last);
+                                		
+                				    	s.setLine(2, "§2Join");
+                                		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
+                                		s.update(); 
+                				    	
+                                		if(economy){
                 	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
                 	            			if(!r.transactionSuccess()) {
                 	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
@@ -982,7 +1004,7 @@ public final class Main extends JavaPlugin implements Listener{
 		            			last.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemid_amount));
 		            			last.updateInventory();
 		                    }
-	            		}	
+	            		}
             		}
             	}
             	if(bef < 2){
