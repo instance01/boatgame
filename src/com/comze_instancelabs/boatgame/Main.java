@@ -378,7 +378,6 @@ public final class Main extends JavaPlugin implements Listener{
                 				    	
                                 		last.updateInventory();
                                 		last.getInventory().setContents(pinv.get(last));
-                				    	//p2.sendMessage(pinv.get(p2).toString());
                                 		last.updateInventory();
                 				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
                 				    		last.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
@@ -393,14 +392,25 @@ public final class Main extends JavaPlugin implements Listener{
                 				    	arenap.remove(last);
                                 		
                 				    	s.setLine(2, "§2Join");
-                                		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
-                                		s.update(); 
+                                		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
+                                		s.update();
+                                		
+                                		arenaspawn.remove(arena);
+                                		try{
+                                			getServer().getScheduler().cancelTask(canceltask.get(secs_updater.get(arena)));
+                                		}catch(Exception e){
+                                			try{
+                                    			getServer().getScheduler().cancelTask(canceltask.get(last));
+                                    		}catch(Exception e_){
+                                    			//TODO
+                                    		}
+                                		}
+                                		secs_.remove(arena);
                 				    	
                                 		if(economy){
                 	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
                 	            			if(!r.transactionSuccess()) {
                 	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
-                	                            //sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
                 	                        }
                 	            		}else{
                 	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
@@ -417,7 +427,7 @@ public final class Main extends JavaPlugin implements Listener{
                             	}
                             	if(bef < 2){
                             		s.setLine(2, "§2Join");
-                            		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
+                            		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
                             		s.update(); 
                             		arenaspawn.remove(arena);
                             		try{
@@ -554,175 +564,182 @@ public final class Main extends JavaPlugin implements Listener{
 	
 	            for (int i = 0; i < s.getLines().length - 1; i++)
 	            {
-	                if (s.getLine(i).equalsIgnoreCase("§2[boat]") && (s.getLine(2).equalsIgnoreCase("§2Join") || s.getLine(2).equalsIgnoreCase("§2Starting")))
+	                if (s.getLine(i).equalsIgnoreCase("§2[boat]"))
 	                {
-	                	//add player to hashmap
-	                	final String arena = s.getLine(i + 1);
-	                	final Player p = event.getPlayer();
-	                	//event.getPlayer().sendMessage(arena + " " + Integer.toString(arenap.size()) + " " + Boolean.toString(whichspawn));
-	                	/*if(arenap.size() > 2){
-	                		event.getPlayer().sendMessage("This arena is full!");
-	                	}else{*/
-	                	if(!arenaspawn.containsKey(arena)){
-	                		arenaspawn.put(arena, 1);
-	                		pspawn.put(p, 1);
+	                	if((s.getLine(2).equalsIgnoreCase("§2Join") || s.getLine(2).equalsIgnoreCase("§2Starting"))){
+		                	//add player to hashmap
+		                	final String arena = s.getLine(i + 1);
+		                	final Player p = event.getPlayer();
+		                	//event.getPlayer().sendMessage(arena + " " + Integer.toString(arenap.size()) + " " + Boolean.toString(whichspawn));
+		                	/*if(arenap.size() > 2){
+		                		event.getPlayer().sendMessage("This arena is full!");
+		                	}else{*/
+		                	if(!arenaspawn.containsKey(arena)){
+		                		arenaspawn.put(arena, 1);
+		                		pspawn.put(p, 1);
+		                	}else{
+		                		arenaspawn.put(arena, arenaspawn.get(arena) + 1);
+		                		pspawn.put(p, arenaspawn.get(arena));
+		                	}
+	            			boolean cont1 = true;
+	            			// Entry money!
+	            			if(economy){
+	            				if(econ.getBalance(event.getPlayer().getName()) < 10){
+	            					event.getPlayer().sendMessage(getConfig().getString("strings.notenoughmoney"));
+	            					cont1 = false;
+	            				}else{
+	                				EconomyResponse r = econ.withdrawPlayer(event.getPlayer().getName(), getConfig().getDouble("config.entry_money"));
+	                                if(!r.transactionSuccess()) {
+	                                	event.getPlayer().sendMessage(String.format("An error occured: %s", r.errorMessage));
+	                                    //sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
+	                                }
+	            				}
+	            			}
+	            			
+	            			// update sign:
+	                        if(s.getLine(3) != ""){
+	                        	String d = s.getLine(3).split("/")[0];
+	                        	int bef = Integer.parseInt(d);
+	                        	//getLogger().info(Integer.toString(bef) + " " + Integer.toString(getConfig().getInt("config.maxplayers")));
+	                        	if(bef < getConfig().getInt("config.maxplayers")){
+	                        		if(cont1){
+	                            		s.setLine(3, Integer.toString(bef + 1) + "/" + getConfig().getString("config.maxplayers"));
+	                            		s.update();
+	                            		getLogger().info(s.getLine(2));
+	                            		if(bef > (getConfig().getInt("config.minplayers") - 2) && !s.getLine(2).equalsIgnoreCase("§2Starting")){ // there was one player in there, bef > 0
+	                            			getLogger().info(s.getLine(2));
+	                            			//start the cooldown for start (10 secs)
+	                            			s.setLine(2, "§2Starting");
+		        		                	s.update();
+	                            			int id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+	                            				//int secs = 11;
+	                            				
+	                            				@Override
+	            	        		            public void run() {
+	        	        		                	int secs = getConfig().getInt("config.starting_cooldown");
+	                            					if(secs_.containsKey(arena)){
+	                            						secs = secs_.get(arena);
+	                            					}else{
+	                            						secs_.put(arena, secs - 1);
+	                            						secs_updater.put(arena, p);
+	                            					}
+	                            					if(secs_updater.containsValue(p)){
+	                            						secs_.put(arena, secs - 1);
+		                            					for(Player p : arenap.keySet()){
+	            	        		                		p.sendMessage("§2Starting in " + Integer.toString(secs));
+	            	        		                	}
+	                            					}
+	            	        		                
+	            	        		                
+	            	        		                
+	            	        		                if(secs < 1){
+	            	        		                	gamestarted.put(arena, true);
+	            	        		                	
+	            	        		                	secs_.remove(arena);
+	            	        		                	secs_updater.remove(arena);
+	            	        		                	
+	            	        		                	getServer().getScheduler().cancelTask(canceltask.get(p));
+	            	        		                	canceltask.remove(p);
+	            	        		                	s.setLine(2, "§4Ingame");
+	            	        		                	int count = 0;
+	            	        		                	for(Player p : arenap.keySet()){
+	            	        		                		if(arenap.get(p).equalsIgnoreCase(arena)){
+	            	        		                			count += 1;
+	            	        		                			p.playSound(p.getLocation(), Sound.CAT_MEOW, 1, 0);
+	            	        		                		}
+	            	        		                	}
+	            	        		                	s.setLine(3, Integer.toString(count)  + "/" + getConfig().getString("config.maxplayers"));
+	            	        		                	s.update();
+	            	        		                }
+	                        					
+	                        					}
+	            	        	            }, 20, 20);
+	                            			canceltask.put(event.getPlayer(), id);
+	                            		}
+	                        		}
+	                        		
+	                        	}else{
+	                        		cont1 = false;
+	                        	}
+	                        }
+	                        
+	                        hp.put(event.getPlayer(), getConfig().getInt("config.boatlifes"));
+	            			if(cont1){
+	                			arenap.put(event.getPlayer(), arena);
+	                			hp.put(event.getPlayer(), getConfig().getInt("config.boatlifes"));
+	                			php.put(event.getPlayer(), getConfig().getInt("config.playerlifes"));
+	                			//event.getPlayer().setExp(0.99F);
+	                    		//spawn the player and give him boatballs + boat
+	                            //Location t = new Location(event.getPlayer().getWorld(), getConfig().getDouble(arena + ".spawn2.x"), getConfig().getDouble(arena + ".spawn2.y"), getConfig().getDouble(arena + ".spawn2.z"));
+	                			String count = Integer.toString(arenaspawn.get(arena));
+	    	                	//getLogger().info("this " + count + " " + Integer.toString(arenaspawn.size()));
+	    	                	final Location t = new Location(Bukkit.getWorld(getConfig().getString(arena + ".spawn" + count + ".world")), getConfig().getDouble(arena + ".spawn" + count + ".x"), getConfig().getDouble(arena + ".spawn" + count + ".y"), getConfig().getDouble(arena + ".spawn" + count + ".z"));
+	    	                	event.getPlayer().teleport(t);
+	                            
+	                            ItemStack selectwand = new ItemStack(Material.SNOW_BALL, 64);
+	                            ItemMeta meta = (ItemMeta) selectwand.getItemMeta();
+	                            meta.setDisplayName(getConfig().getString("strings.ball_name"));
+	                            selectwand.setItemMeta(meta);
+	                            pinv.put(p, p.getInventory().getContents());
+	            				p.updateInventory();
+	            				
+	            				p.getInventory().clear();
+	            				for(int i_ = 0; i_ < getConfig().getInt("config.snowballstacks_amount"); i_++){
+	            					event.getPlayer().getInventory().addItem(selectwand);	
+	            				}
+	                            event.getPlayer().updateInventory();
+	                            
+	                            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+	 		                		public void run(){
+	 		                			b = p.getWorld().spawn(t, Boat.class);
+	 		                			b.setPassenger(p);
+	 		                		}
+	 		                	}, 10);
+	                            //b.setWorkOnLand(true);
+	                            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+	                            	public void run(){
+	                            		//final Boat b = p.getWorld().spawn(t, Boat.class);
+	                            		b.setPassenger(p);
+	                            	}
+	                            }, 20);
+	                            //b.setMaxSpeed(getConfig().getDouble("config.boatspeed_arena"));
+	                            
+	                            //lock_spawn.put(p, 2);
+	                            if(getConfig().getBoolean("config.teams")){
+	                            	if(whichteam){
+	                            		team.put(p, 1);
+	                            		p.getInventory().setHelmet(new ItemStack(Material.DIAMOND_BLOCK, 1));
+	                            		p.updateInventory();
+	                            		getLogger().info(p.getName() + " is in team 1.");
+	                            		whichteam = false;
+	                            	}else if(!whichteam){
+	                            		team.put(p, 2);
+	                            		p.getInventory().setHelmet(new ItemStack(Material.GOLD_BLOCK, 1));
+	                            		p.updateInventory();
+	                            		getLogger().info(p.getName() + " is in team 2.");
+	                            		whichteam = true;
+	                            	}
+	                            }
+	                            
+	            			}
+	            			
 	                	}else{
-	                		arenaspawn.put(arena, arenaspawn.get(arena) + 1);
-	                		pspawn.put(p, arenaspawn.get(arena));
-	                	}
-            			boolean cont1 = true;
-            			// Entry money!
-            			if(economy){
-            				if(econ.getBalance(event.getPlayer().getName()) < 10){
-            					event.getPlayer().sendMessage(getConfig().getString("strings.notenoughmoney"));
-            					cont1 = false;
-            				}else{
-                				EconomyResponse r = econ.withdrawPlayer(event.getPlayer().getName(), getConfig().getDouble("config.entry_money"));
-                                if(!r.transactionSuccess()) {
-                                	event.getPlayer().sendMessage(String.format("An error occured: %s", r.errorMessage));
-                                    //sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
-                                }
-            				}
-            			}
-            			
-            			// update sign:
-                        if(s.getLine(3) != ""){
-                        	String d = s.getLine(3).split("/")[0];
-                        	int bef = Integer.parseInt(d);
-                        	//getLogger().info(Integer.toString(bef) + " " + Integer.toString(getConfig().getInt("config.maxplayers")));
-                        	if(bef < getConfig().getInt("config.maxplayers")){
-                        		if(cont1){
-                            		s.setLine(3, Integer.toString(bef + 1) + "/" + getConfig().getString("config.maxplayers"));
-                            		s.update();
-                            		getLogger().info(s.getLine(2));
-                            		if(bef > (getConfig().getInt("config.minplayers") - 2) && !s.getLine(2).equalsIgnoreCase("§2Starting")){ // there was one player in there, bef > 0
-                            			getLogger().info(s.getLine(2));
-                            			//start the cooldown for start (10 secs)
-                            			s.setLine(2, "§2Starting");
-	        		                	s.update();
-                            			int id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-                            				//int secs = 11;
-                            				
-                            				@Override
-            	        		            public void run() {
-        	        		                	int secs = getConfig().getInt("config.starting_cooldown");
-                            					if(secs_.containsKey(arena)){
-                            						secs = secs_.get(arena);
-                            					}else{
-                            						secs_.put(arena, secs - 1);
-                            						secs_updater.put(arena, p);
-                            					}
-                            					if(secs_updater.containsValue(p)){
-                            						secs_.put(arena, secs - 1);
-	                            					for(Player p : arenap.keySet()){
-            	        		                		p.sendMessage("§2Starting in " + Integer.toString(secs));
-            	        		                	}
-                            					}
-            	        		                
-            	        		                
-            	        		                
-            	        		                if(secs < 1){
-            	        		                	gamestarted.put(arena, true);
-            	        		                	
-            	        		                	secs_.remove(arena);
-            	        		                	secs_updater.remove(arena);
-            	        		                	
-            	        		                	getServer().getScheduler().cancelTask(canceltask.get(p));
-            	        		                	canceltask.remove(p);
-            	        		                	s.setLine(2, "§4Ingame");
-            	        		                	int count = 0;
-            	        		                	for(Player p : arenap.keySet()){
-            	        		                		if(arenap.get(p).equalsIgnoreCase(arena)){
-            	        		                			count += 1;
-            	        		                			p.playSound(p.getLocation(), Sound.CAT_MEOW, 1, 0);
-            	        		                		}
-            	        		                	}
-            	        		                	s.setLine(3, Integer.toString(count)  + "/" + getConfig().getString("config.maxplayers"));
-            	        		                	s.update();
-            	        		                }
-                        					
-                        					}
-            	        	            }, 20, 20);
-                            			canceltask.put(event.getPlayer(), id);
-                            		}
-                        		}
-                        		
-                        	}else{
-                        		cont1 = false;
-                        	}
-                        }
-                        
-                        hp.put(event.getPlayer(), getConfig().getInt("config.boatlifes"));
-            			if(cont1){
-                			arenap.put(event.getPlayer(), arena);
-                			hp.put(event.getPlayer(), getConfig().getInt("config.boatlifes"));
-                			php.put(event.getPlayer(), getConfig().getInt("config.playerlifes"));
-                			//event.getPlayer().setExp(0.99F);
-                    		//spawn the player and give him boatballs + boat
-                            //Location t = new Location(event.getPlayer().getWorld(), getConfig().getDouble(arena + ".spawn2.x"), getConfig().getDouble(arena + ".spawn2.y"), getConfig().getDouble(arena + ".spawn2.z"));
-                			String count = Integer.toString(arenaspawn.get(arena));
-    	                	//getLogger().info("this " + count + " " + Integer.toString(arenaspawn.size()));
-    	                	final Location t = new Location(Bukkit.getWorld(getConfig().getString(arena + ".spawn" + count + ".world")), getConfig().getDouble(arena + ".spawn" + count + ".x"), getConfig().getDouble(arena + ".spawn" + count + ".y"), getConfig().getDouble(arena + ".spawn" + count + ".z"));
-    	                	event.getPlayer().teleport(t);
-                            
-                            ItemStack selectwand = new ItemStack(Material.SNOW_BALL, 64);
-                            ItemMeta meta = (ItemMeta) selectwand.getItemMeta();
-                            meta.setDisplayName(getConfig().getString("strings.ball_name"));
-                            selectwand.setItemMeta(meta);
-                            pinv.put(p, p.getInventory().getContents());
-            				p.updateInventory();
-            				
-            				p.getInventory().clear();
-            				for(int i_ = 0; i_ < getConfig().getInt("config.snowballstacks_amount"); i_++){
-            					event.getPlayer().getInventory().addItem(selectwand);	
-            				}
-                            event.getPlayer().updateInventory();
-                            
-                            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
- 		                		public void run(){
- 		                			b = p.getWorld().spawn(t, Boat.class);
- 		                			b.setPassenger(p);
- 		                		}
- 		                	}, 10);
-                            //b.setWorkOnLand(true);
-                            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-                            	public void run(){
-                            		//final Boat b = p.getWorld().spawn(t, Boat.class);
-                            		b.setPassenger(p);
-                            	}
-                            }, 20);
-                            //b.setMaxSpeed(getConfig().getDouble("config.boatspeed_arena"));
-                            
-                            //lock_spawn.put(p, 2);
-                            if(getConfig().getBoolean("config.teams")){
-                            	if(whichteam){
-                            		team.put(p, 1);
-                            		p.getInventory().setHelmet(new ItemStack(Material.DIAMOND_BLOCK, 1));
-                            		p.updateInventory();
-                            		getLogger().info(p.getName() + " is in team 1.");
-                            		whichteam = false;
-                            	}else if(!whichteam){
-                            		team.put(p, 2);
-                            		p.getInventory().setHelmet(new ItemStack(Material.GOLD_BLOCK, 1));
-                            		p.updateInventory();
-                            		getLogger().info(p.getName() + " is in team 2.");
-                            		whichteam = true;
-                            	}
-                            }
-                            
-            			}
-            			
-            			
-            			//Auto fix: If player rightclicks on a screwed boatgame sign, it "repairs" itself.
-            			//getLogger().info("ARENAP COUNT: " + Integer.toString(arenap.values().size()));
-                    	// no players in given arena anymore -> update sign
-            	    	if(!arenap.values().contains(arena)){
-            	    		s.setLine(2, "§2Join!");
-            	    		s.setLine(3, "0/" + Integer.toString(getConfig().getInt("config.maxplayers")));
-            	    		s.update();
-            	    	}
-	
+	                		final String arena = s.getLine(i + 1);
+			                //Auto fix: If player rightclicks on a screwed boatgame sign, it "repairs" itself.
+		        			//getLogger().info("ARENAP COUNT: " + Integer.toString(arenap.values().size()));
+		                	// no players in given arena anymore -> update sign
+		        	    	if(!arenap.values().contains(arena)){
+		        	    		s.setLine(2, "§2Join!");
+		        	    		s.setLine(3, "0/" + Integer.toString(getConfig().getInt("config.maxplayers")));
+		        	    		s.update();
+		        	    	}
+	                	}// end of if Join or Starting on sign
+	                	
+	                	
+	                		
 	                } //end of if s.getline .. [BOAT]
+	                
+	              
 	            }
 	        }
 	    }
@@ -986,25 +1003,67 @@ public final class Main extends JavaPlugin implements Listener{
             		secs_.remove(arena);
             		arenaspawn.remove(arena);
             		
-            		Player last = this.getKeyByValue(arenap, "arena");
+            		Player last = this.getKeyByValue(arenap, arena);
             		
             		if(last != null){
-                		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
-	            		if(economy){
-	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
-	            			if(!r.transactionSuccess()) {
-	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
-	                            //sender.sendMessage(String.format("You were given %s and now have %s", econ.format(r.amount), econ.format(r.balance)));
-	                        }
-	            		}else{
-	            			int itemid = getConfig().getInt("config.itemreward_itemid");
-	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
-	            			last.updateInventory();
-		            		if(itemid != 0){
-		            			last.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemid_amount));
-		            			last.updateInventory();
-		                    }
-	            		}
+                		
+                		if(last != null){
+                    		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
+    	            		
+                    		last.getVehicle().remove();
+    				    	
+                    		last.updateInventory();
+                    		last.getInventory().setContents(pinv.get(last));
+                    		last.updateInventory();
+    				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+    				    		last.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+    		    			}
+    				    	last.getInventory().setContents(pinv.get(last));
+    				    	last.updateInventory();
+    				    	
+    				    	Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+    				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+    				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+    			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+    				    	
+    				    	Location t_ = new Location(w, x, y, z);
+    			    		
+    			    		BukkitTask task_ = new futask(last, t_, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 40);
+    				    	
+    				    	arenap.remove(last);
+                    		
+    				    	s.setLine(2, "§2Join");
+                    		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
+                    		s.update();
+                    		
+                    		arenaspawn.remove(arena);
+                    		try{
+                    			getServer().getScheduler().cancelTask(canceltask.get(secs_updater.get(arena)));
+                    		}catch(Exception e){
+                    			try{
+                        			getServer().getScheduler().cancelTask(canceltask.get(last));
+                        		}catch(Exception e_){
+                        		}
+                    		}
+                    		secs_.remove(arena);
+    				    	
+                    		if(economy){
+    	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
+    	            			if(!r.transactionSuccess()) {
+    	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
+    	                        }
+    	            		}else{
+    	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
+    	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
+    	            			last.updateInventory();
+    		            		if(itemid.size() > 0){
+    		            			for(int id : itemid){
+    		            				last.getInventory().addItem(new ItemStack(Material.getMaterial(id), itemid_amount));
+    		            				last.updateInventory();
+    		            			}
+    		                    }
+    	            		}	
+                		}
             		}
             	}
             	if(bef < 2){
