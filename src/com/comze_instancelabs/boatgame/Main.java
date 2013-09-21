@@ -1190,7 +1190,54 @@ public final class Main extends JavaPlugin implements Listener{
 					}else{
 						if(!p.getInventory().contains(Material.SNOW_BALL)){
 							// player doesn't have any snowballs any more -> lose
-							//TODO
+							//TODO: test out
+							p.sendMessage("§3You've lost the boatgame, all your snowballs are spent. :(");
+							
+							String arena = arenap.get(p);
+							
+							Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+        			    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+        			    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+							
+							p.getVehicle().remove();
+    			    		if(getConfig().getBoolean("config.teams")){
+    			    			p.getInventory().setHelmet(null);
+    			    			p.updateInventory();
+        			    	}
+    			    		
+    				    	World w2 = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+    				    	
+    				    	Location t2 = new Location(w2, x, y, z);
+    				    	//otp.teleport(t2);
+    				        BukkitTask task1 = new futask(p, t2, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+    				        
+    				        p.updateInventory();
+    				        for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+    		    				p.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+    		    			}
+    				        p.getInventory().setContents(pinv.get(p));
+    				        p.updateInventory();
+    				        
+
+    				        Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
+    				        getLogger().info(b.toString());
+    				        BlockState bs_ = b.getBlock().getState();
+        			    	Sign s = null;
+        			    	if(bs_ instanceof Sign){
+        			    		s = (Sign)bs_;
+        			    	}else{
+        			    		getLogger().info(bs_.getBlock().toString());
+        			    	}
+    				    	// update sign:
+                            if(s != null && s.getLine(3) != ""){
+                            	String d = s.getLine(3).split("/")[0];
+                            	//getLogger().info(d);
+                            	int bef = Integer.parseInt(d);
+                            	if(bef > 0){
+                            		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
+                            		s.update();
+                            	}
+                            }
 						}
 					}
 				}
