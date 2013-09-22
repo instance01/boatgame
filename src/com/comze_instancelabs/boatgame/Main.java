@@ -164,13 +164,6 @@ public final class Main extends JavaPlugin implements Listener{
             gamestarted.put(keys.get(i), false);
         }
         
-        try {
-            Metrics metrics = new Metrics(this);
-            metrics.start();
-        } catch (IOException e) {
-            // Failed to submit the stats :(
-        }
-        
         if(getConfig().getBoolean("config.auto_updating")){
         	Updater updater = new Updater(this, "sea-battle", this.getFile(), Updater.UpdateType.DEFAULT, false);
         }
