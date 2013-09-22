@@ -295,6 +295,21 @@ public final class Main extends JavaPlugin implements Listener{
     					if (sender.hasPermission("boatgame.cleararena"))
     	                {
 	    	    			String arena = args[1];
+	    	    			
+	    	    			// tp players out
+	    	    			for(Player p : arenap.keySet()) {
+	    	    				if(arenap.get(p).equalsIgnoreCase(arena)){
+	    	    					Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+	        				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+	        				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+	        			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+	        				    	Location t = new Location(w, x, y, z);
+	        			    		
+	        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+	        				    	
+	    	    				}
+	    	    			}
+	    	    			
 	    	    			while (arenap.values().remove(arena));
 	    	    			gamestarted.put(arena, false);
         			    	arenaspawn.remove(arena);
@@ -733,8 +748,9 @@ public final class Main extends JavaPlugin implements Listener{
 	                	
 	                	
 	                		
-	                } //end of if s.getline .. [BOAT]
-	                
+	                }else if(s.getLine(0).equalsIgnoreCase("[boat-ammo]")){ //end of if s.getline .. [BOAT]
+	                	//TODO: Ammo signs
+	                }
 	              
 	            }
 	        }
