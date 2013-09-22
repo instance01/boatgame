@@ -113,7 +113,7 @@ public final class Main extends JavaPlugin implements Listener{
 		getConfig().addDefault("config.use_economy", true);
 		getConfig().addDefault("config.entry_money", 10.0);
 		//getConfig().addDefault("config.itemreward_itemid", itemids);
-		getConfig().addDefault("config.itemreward_itemid", new Integer[] {364, 9});
+		getConfig().addDefault("config.itemreward_itemid", new Integer[] {264, 9});
 		getConfig().addDefault("config.itemreward_amount", 2);
 		getConfig().addDefault("config.maxplayers", 10);
 		getConfig().addDefault("config.minplayers", 2);
@@ -121,6 +121,7 @@ public final class Main extends JavaPlugin implements Listener{
 		getConfig().addDefault("config.teams", false);
 		getConfig().addDefault("config.auto_updating", true);
 		getConfig().addDefault("config.announce_winners", true);
+		getConfig().addDefault("config.lastmanstanding", true);
 		//getConfig().addDefault("config.saveandclearinventory", false);
 		
 		// TODO: new
@@ -361,62 +362,65 @@ public final class Main extends JavaPlugin implements Listener{
                             		s.update();
                             		getLogger().info(s.getLine(3));
                             	}
-                            	if(bef.equals(2)){ // one player left -> gets prize
-                            		Player last = this.getKeyByValue(arenap, arena);
-                            		
-                            		if(last != null){
-                                		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
-                	            		
-                                		last.getVehicle().remove();
-                				    	
-                                		last.updateInventory();
-                                		last.getInventory().setContents(pinv.get(last));
-                                		last.updateInventory();
-                				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
-                				    		last.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
-                		    			}
-                				    	last.getInventory().setContents(pinv.get(last));
-                				    	last.updateInventory();
-
-                				    	Location t_ = new Location(w, x, y, z);
-                			    		
-                			    		BukkitTask task_ = new futask(last, t_, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 40);
-                				    	
-                				    	arenap.remove(last);
-                                		
-                				    	s.setLine(2, "§2Join");
-                                		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
-                                		s.update();
-                                		
-                                		arenaspawn.remove(arena);
-                                		try{
-                                			getServer().getScheduler().cancelTask(canceltask.get(secs_updater.get(arena)));
-                                		}catch(Exception e){
-                                			try{
-                                    			getServer().getScheduler().cancelTask(canceltask.get(last));
-                                    		}catch(Exception e_){
-                                    		}
-                                		}
-                                		secs_.remove(arena);
-                				    	
-                                		if(economy){
-                	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
-                	            			if(!r.transactionSuccess()) {
-                	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
-                	                        }
-                	            		}else{
-                	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
-                	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
-                	            			last.updateInventory();
-                		            		if(itemid.size() > 0){
-                		            			for(int id : itemid){
-                		            				last.getInventory().addItem(new ItemStack(Material.getMaterial(id), itemid_amount));
-                		            				last.updateInventory();
-                		            			}
-                		                    }
-                	            		}	
-                            		}
+                            	if(getConfig().getBoolean("config.lastmanstanding")){
+	                            	if(bef.equals(2)){ // one player left -> gets prize
+	                            		Player last = this.getKeyByValue(arenap, arena);
+	                            		
+	                            		if(last != null){
+	                                		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
+	                	            		
+	                                		last.getVehicle().remove();
+	                				    	
+	                                		last.updateInventory();
+	                                		last.getInventory().setContents(pinv.get(last));
+	                                		last.updateInventory();
+	                				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+	                				    		last.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+	                		    			}
+	                				    	last.getInventory().setContents(pinv.get(last));
+	                				    	last.updateInventory();
+	
+	                				    	Location t_ = new Location(w, x, y, z);
+	                			    		
+	                			    		BukkitTask task_ = new futask(last, t_, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 40);
+	                				    	
+	                				    	arenap.remove(last);
+	                                		
+	                				    	s.setLine(2, "§2Join");
+	                                		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
+	                                		s.update();
+	                                		
+	                                		arenaspawn.remove(arena);
+	                                		try{
+	                                			getServer().getScheduler().cancelTask(canceltask.get(secs_updater.get(arena)));
+	                                		}catch(Exception e){
+	                                			try{
+	                                    			getServer().getScheduler().cancelTask(canceltask.get(last));
+	                                    		}catch(Exception e_){
+	                                    		}
+	                                		}
+	                                		secs_.remove(arena);
+	                				    	
+	                                		if(economy){
+	                	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
+	                	            			if(!r.transactionSuccess()) {
+	                	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
+	                	                        }
+	                	            		}else{
+	                	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
+	                	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
+	                	            			last.updateInventory();
+	                		            		if(itemid.size() > 0){
+	                		            			for(int id : itemid){
+	                		            				last.getInventory().addItem(new ItemStack(Material.getMaterial(id), itemid_amount));
+	                		            				last.updateInventory();
+	                		            			}
+	                		                    }
+	                	            		}	
+	                            		}
+	                            	}	
                             	}
+                            	
                             	if(bef < 2){
                             		s.setLine(2, "§2Join");
                             		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
@@ -987,82 +991,85 @@ public final class Main extends JavaPlugin implements Listener{
             		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
             		s.update();
             	}
-            	if(bef.equals(2)){ // 1 player left -> gets prize
-            		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
-            		s.setLine(2, "§2Join");
-            		s.update();
-            		try{
-            			getServer().getScheduler().cancelTask(canceltask.get(p2));
-            		}catch(Exception e){
-            			
-            		}
-            		gamestarted.put(arena, false);
-            		secs_.remove(arena);
-            		arenaspawn.remove(arena);
-            		
-            		Player last = this.getKeyByValue(arenap, arena);
-            		
-            		if(last != null){
-                		
-                		if(last != null){
-                    		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
-    	            		
-                    		last.getVehicle().remove();
-    				    	
-                    		last.updateInventory();
-                    		last.getInventory().setContents(pinv.get(last));
-                    		last.updateInventory();
-    				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
-    				    		last.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
-    		    			}
-    				    	last.getInventory().setContents(pinv.get(last));
-    				    	last.updateInventory();
-    				    	
-    				    	Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
-    				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
-    				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
-    			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
-    				    	
-    				    	Location t_ = new Location(w, x, y, z);
-    			    		
-    			    		BukkitTask task_ = new futask(last, t_, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 40);
-    				    	
-    				    	arenap.remove(last);
-                    		
-    				    	s.setLine(2, "§2Join");
-                    		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
-                    		s.update();
-                    		
-                    		arenaspawn.remove(arena);
-                    		try{
-                    			getServer().getScheduler().cancelTask(canceltask.get(secs_updater.get(arena)));
-                    		}catch(Exception e){
-                    			try{
-                        			getServer().getScheduler().cancelTask(canceltask.get(last));
-                        		}catch(Exception e_){
-                        		}
-                    		}
-                    		secs_.remove(arena);
-    				    	
-                    		if(economy){
-    	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
-    	            			if(!r.transactionSuccess()) {
-    	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
-    	                        }
-    	            		}else{
-    	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
-    	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
-    	            			last.updateInventory();
-    		            		if(itemid.size() > 0){
-    		            			for(int id : itemid){
-    		            				last.getInventory().addItem(new ItemStack(Material.getMaterial(id), itemid_amount));
-    		            				last.updateInventory();
-    		            			}
-    		                    }
-    	            		}	
-                		}
-            		}
+            	if(getConfig().getBoolean("config.lastmanstanding")){
+	            	if(bef.equals(2)){ // 1 player left -> gets prize
+	            		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
+	            		s.setLine(2, "§2Join");
+	            		s.update();
+	            		try{
+	            			getServer().getScheduler().cancelTask(canceltask.get(p2));
+	            		}catch(Exception e){
+	            			
+	            		}
+	            		gamestarted.put(arena, false);
+	            		secs_.remove(arena);
+	            		arenaspawn.remove(arena);
+	            		
+	            		Player last = this.getKeyByValue(arenap, arena);
+	            		
+	            		if(last != null){
+	                		
+	                		if(last != null){
+	                    		last.sendMessage("§3You are the last man standing and got a prize! Leave with /sb leave.");
+	    	            		
+	                    		last.getVehicle().remove();
+	    				    	
+	                    		last.updateInventory();
+	                    		last.getInventory().setContents(pinv.get(last));
+	                    		last.updateInventory();
+	    				    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+	    				    		last.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+	    		    			}
+	    				    	last.getInventory().setContents(pinv.get(last));
+	    				    	last.updateInventory();
+	    				    	
+	    				    	Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+	    				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+	    				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+	    			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+	    				    	
+	    				    	Location t_ = new Location(w, x, y, z);
+	    			    		
+	    			    		BukkitTask task_ = new futask(last, t_, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 40);
+	    				    	
+	    				    	arenap.remove(last);
+	                    		
+	    				    	s.setLine(2, "§2Join");
+	                    		s.setLine(3, "0/" + getConfig().getString("config.maxplayers"));
+	                    		s.update();
+	                    		
+	                    		arenaspawn.remove(arena);
+	                    		try{
+	                    			getServer().getScheduler().cancelTask(canceltask.get(secs_updater.get(arena)));
+	                    		}catch(Exception e){
+	                    			try{
+	                        			getServer().getScheduler().cancelTask(canceltask.get(last));
+	                        		}catch(Exception e_){
+	                        		}
+	                    		}
+	                    		secs_.remove(arena);
+	    				    	
+	                    		if(economy){
+	    	            			EconomyResponse r = econ.depositPlayer(last.getName(), getConfig().getDouble("config.entry_money") * 2);
+	    	            			if(!r.transactionSuccess()) {
+	    	            				last.sendMessage(String.format("An error occured: %s", r.errorMessage));
+	    	                        }
+	    	            		}else{
+	    	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
+	    	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
+	    	            			last.updateInventory();
+	    		            		if(itemid.size() > 0){
+	    		            			for(int id : itemid){
+	    		            				last.getInventory().addItem(new ItemStack(Material.getMaterial(id), itemid_amount));
+	    		            				last.updateInventory();
+	    		            			}
+	    		                    }
+	    	            		}	
+	                		}
+	            		}
+	            	}	
             	}
+            	
             	if(bef < 2){
             		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
             		s.setLine(2, "§2Join");
