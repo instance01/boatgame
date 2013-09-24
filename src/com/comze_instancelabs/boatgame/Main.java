@@ -159,6 +159,13 @@ public final class Main extends JavaPlugin implements Listener{
 	        }
 		}
 		
+		try {
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (IOException e) {
+			// Failed to submit the stats :(
+		}
+		
 		ArrayList<String> keys = new ArrayList<String>();
         keys.addAll(getConfig().getKeys(false));
         for(int i = 0; i < keys.size(); i++){
@@ -291,41 +298,45 @@ public final class Main extends JavaPlugin implements Listener{
     	                }else{
     	                	sender.sendMessage(getConfig().getString("strings.nopermission"));
     	                }
-    				}else if(action.equalsIgnoreCase("reset") && args.length > 1){
-    					if (sender.hasPermission("boatgame.cleararena"))
-    	                {
-	    	    			String arena = args[1];
-	    	    			
-	    	    			// tp players out
-	    	    			for(Player p : arenap.keySet()) {
-	    	    				if(arenap.get(p).equalsIgnoreCase(arena)){
-	    	    					Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
-	        				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
-	        				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
-	        			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
-	        				    	Location t = new Location(w, x, y, z);
-	        			    		
-	        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
-	        				    	
-	    	    				}
-	    	    			}
-	    	    			
-	    	    			while (arenap.values().remove(arena));
-	    	    			gamestarted.put(arena, false);
-        			    	arenaspawn.remove(arena);
-        			    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
-        			    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
-        			    	// update sign: 
-        		            if(s != null && s.getLine(3) != ""){
-    		            		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
-    		            		s.setLine(2, "§2Join");
-    		            		s.update();
-    		            		secs_.remove(arena);
-        		            }
-        		            sender.sendMessage("§2Arena reset.");
-    	                }else{
-    	                	sender.sendMessage(getConfig().getString("strings.nopermission"));
-    	                }
+    				}else if(action.equalsIgnoreCase("reset") && args.length > 0){
+    					if(args.length > 1){
+	    					if (sender.hasPermission("boatgame.cleararena"))
+	    	                {
+		    	    			String arena = args[1];
+		    	    			
+		    	    			// tp players out
+		    	    			for(Player p : arenap.keySet()) {
+		    	    				if(arenap.get(p).equalsIgnoreCase(arena)){
+		    	    					Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+		        				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+		        				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+		        			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+		        				    	Location t = new Location(w, x, y, z);
+		        			    		
+		        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+		        				    	
+		    	    				}
+		    	    			}
+		    	    			
+		    	    			while (arenap.values().remove(arena));
+		    	    			gamestarted.put(arena, false);
+	        			    	arenaspawn.remove(arena);
+	        			    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
+	        			    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
+	        			    	// update sign: 
+	        		            if(s != null && s.getLine(3) != ""){
+	    		            		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
+	    		            		s.setLine(2, "§2Join");
+	    		            		s.update();
+	    		            		secs_.remove(arena);
+	        		            }
+	        		            sender.sendMessage("§2Arena reset.");
+	    	                }else{
+	    	                	sender.sendMessage(getConfig().getString("strings.nopermission"));
+	    	                }	
+    					}else{
+    						sender.sendMessage("§4Please provide an arenaname! Usage: /sb reset [name]");
+    					}
     				}else if(action.equalsIgnoreCase("leave")){
     					final Player p2 = (Player)sender;
     					//getLogger().info("There are " + Integer.toString(arenap.size() - 1) + " Players in the arena now.");
@@ -423,6 +434,15 @@ public final class Main extends JavaPlugin implements Listener{
 	                	                        }
 	                	            		}else{
 	                	            			List<Integer> itemid = getConfig().getIntegerList("config.itemreward_itemid");
+	                	            			
+	                	            			// TODO: Amounts feature
+	                	            			
+	                	            			//List<String> itemid = getConfig().getStringList("config.itemreward_itemid");
+	                	            			/*HashMap<Integer, Integer> item_idamount = new HashMap<Integer, Integer>();
+	                	            			for(String str : itemid){
+	                	            				item_idamount.put(Integer.parseInt(str.substring(str.indexOf(",") + 1, str.length())), Integer.parseInt(str.substring(0, str.substring(str.indexOf(",") - 1))
+	                	            			}*/
+	                	            			
 	                	            			int itemid_amount = getConfig().getInt("config.itemreward_amount");
 	                	            			last.updateInventory();
 	                		            		if(itemid.size() > 0){
@@ -748,8 +768,16 @@ public final class Main extends JavaPlugin implements Listener{
 	                	
 	                	
 	                		
-	                }else if(s.getLine(0).equalsIgnoreCase("[boat-ammo]")){ //end of if s.getline .. [BOAT]
-	                	//TODO: Ammo signs
+	                }else if(s.getLine(0).equalsIgnoreCase("§2[boat-ammo]")){ //end of if s.getline .. [BOAT]
+	                	final Player p = event.getPlayer();
+	                	if(arenap.containsKey(p)){
+	                		int count = 0;
+	                		count = Integer.parseInt(s.getLine(1));
+	                		p.updateInventory();
+	                		p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, count));
+	                		p.updateInventory();
+	                		p.sendMessage("§3You just got " + s.getLine(1) + " boatballs!");
+	                	}
 	                }
 	              
 	            }
@@ -1171,6 +1199,12 @@ public final class Main extends JavaPlugin implements Listener{
             	event.setLine(0, "INVALID");
             	p.sendMessage("§4You don't have permission to create arenas.");
             }
+        }else if(event.getLine(0).toLowerCase().contains("[boat-ammo]")){
+        	event.setLine(0, "§2[boat-ammo]");
+        	if(event.getLine(1) == null){
+        		event.getBlock().breakNaturally();
+        		event.getPlayer().sendMessage("§4You need to provide the number of snowballs to be added, when a player rightclicks the sign.");
+        	}
         }
     }
 
