@@ -77,7 +77,6 @@ public final class Main extends JavaPlugin implements Listener{
 	
 	//TODO: BUGS
 	// [LOW] When player holding solid blocks like cobblestone (which can be placed), snowballs won't be added, because interaction with sign fails
-	// [HIGH] AFTER A WHILE THE PLUGIN DOESNT WORK ANYMORE
 	
 	
 	public static Economy econ = null;
@@ -304,33 +303,37 @@ public final class Main extends JavaPlugin implements Listener{
 	    	                {
 		    	    			String arena = args[1];
 		    	    			
-		    	    			// tp players out
-		    	    			for(Player p : arenap.keySet()) {
-		    	    				if(arenap.get(p).equalsIgnoreCase(arena)){
-		    	    					Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
-		        				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
-		        				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
-		        			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
-		        				    	Location t = new Location(w, x, y, z);
-		        			    		
-		        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
-		        				    	
-		    	    				}
+		    	    			if(getConfig().contains(arena)){
+			    	    			// tp players out
+			    	    			for(Player p : arenap.keySet()) {
+			    	    				if(arenap.get(p).equalsIgnoreCase(arena)){
+			    	    					Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+			        				    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+			        				    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+			        			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+			        				    	Location t = new Location(w, x, y, z);
+			        			    		
+			        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+			        				    	
+			    	    				}
+			    	    			}
+			    	    			
+			    	    			while (arenap.values().remove(arena));
+			    	    			gamestarted.put(arena, false);
+		        			    	arenaspawn.remove(arena);
+		        			    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
+		        			    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
+		        			    	// update sign: 
+		        		            if(s != null && s.getLine(3) != ""){
+		    		            		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
+		    		            		s.setLine(2, "§2Join");
+		    		            		s.update();
+		    		            		secs_.remove(arena);
+		        		            }
+		        		            sender.sendMessage("§2Arena reset.");	
+		    	    			}else{
+		    	    				sender.sendMessage("§4This arena couldn't be found.");
 		    	    			}
-		    	    			
-		    	    			while (arenap.values().remove(arena));
-		    	    			gamestarted.put(arena, false);
-	        			    	arenaspawn.remove(arena);
-	        			    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
-	        			    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
-	        			    	// update sign: 
-	        		            if(s != null && s.getLine(3) != ""){
-	    		            		s.setLine(3, Integer.toString(0) + "/" + getConfig().getString("config.maxplayers"));
-	    		            		s.setLine(2, "§2Join");
-	    		            		s.update();
-	    		            		secs_.remove(arena);
-	        		            }
-	        		            sender.sendMessage("§2Arena reset.");
 	    	                }else{
 	    	                	sender.sendMessage(getConfig().getString("strings.nopermission"));
 	    	                }	
@@ -777,6 +780,7 @@ public final class Main extends JavaPlugin implements Listener{
 	                		p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, count));
 	                		p.updateInventory();
 	                		p.sendMessage("§3You just got " + s.getLine(1) + " boatballs!");
+	                		return;
 	                	}
 	                }
 	              
@@ -1238,7 +1242,27 @@ public final class Main extends JavaPlugin implements Listener{
 					if(!gamestarted.get(arenap.get(p))){
 						event.setCancelled(true);	
 					}else{
-						if(!p.getInventory().contains(Material.SNOW_BALL)){
+						p.updateInventory();
+						boolean cont = true;
+						int count = 0;
+						for(ItemStack item : p.getInventory().getContents())
+						{
+						    if(item != null){
+						    	count += 1;
+						    	cont = false;
+						    }
+						}
+						if(count < 2){
+							for(ItemStack item : p.getInventory().getContents())
+							{
+							    if(item != null){
+							    	if(item.getAmount() < 2){
+							    		cont = true;
+							    	}
+							    }
+							}
+						}
+						if(cont){
 							// player doesn't have any snowballs any more -> lose
 							//TODO: test out
 							p.sendMessage("§3You've lost the boatgame, all your snowballs are spent. :(");
@@ -1284,10 +1308,13 @@ public final class Main extends JavaPlugin implements Listener{
                             	//getLogger().info(d);
                             	int bef = Integer.parseInt(d);
                             	if(bef > 0){
+                            		s.setLine(2, "§2Join");
                             		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
                             		s.update();
                             	}
                             }
+                            
+                            arenaspawn.remove(arena);
 						}
 					}
 				}
