@@ -39,6 +39,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -1463,5 +1464,18 @@ public final class Main extends JavaPlugin implements Listener{
         	event.setCancelled(true);
         }
     }
+    
+    
+    @EventHandler
+	public void onPlayerCommand(PlayerCommandPreprocessEvent event){
+		if(arenap.containsKey(event.getPlayer())){
+			if(event.getMessage().equalsIgnoreCase("/sb leave") || event.getMessage().equalsIgnoreCase("/seabattle leave")){
+				// nothing
+			}else{
+				event.setCancelled(true);
+				event.getPlayer().sendMessage("§3You're in a SeaBattle game. Please use /sb leave to leave the minigame.");
+			}
+		}
+	}
 
 }
