@@ -96,7 +96,7 @@ public final class Main extends JavaPlugin implements Listener{
 	static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>(); // player -> Inventory
 	HashMap<Player, Integer> pspawn = new HashMap<Player, Integer>(); // player -> spawn 1 etc.
 	static HashMap<String, Integer> arenaspawn = new HashMap<String, Integer>(); // arena -> current spawn count
-	static HashMap<Player, Boolean> usedammo = new HashMap<Player, Boolean>(); // player -> used ammo sign or not
+	static HashMap<Player, Integer> usedammo = new HashMap<Player, Integer>(); // player -> Usage count of ammo signs
 	
 	String arenaname = "";
 	
@@ -123,6 +123,7 @@ public final class Main extends JavaPlugin implements Listener{
 		getConfig().addDefault("config.auto_updating", true);
 		getConfig().addDefault("config.announce_winners", true);
 		getConfig().addDefault("config.lastmanstanding", true);
+		getConfig().addDefault("config.ammo_usage_count", 2);
 		//getConfig().addDefault("config.saveandclearinventory", false);
 		
 		// TODO: new
@@ -514,6 +515,7 @@ public final class Main extends JavaPlugin implements Listener{
 	    			        	keys.remove("config");
 	    			        	keys.remove("strings");
 	    			        	keys.remove("AutoUpdate");
+	    			        	keys.remove("tpthem");
 	    			        }catch(Exception e){
 	    			        	
 	    			        }
@@ -642,7 +644,7 @@ public final class Main extends JavaPlugin implements Listener{
 		                		event.getPlayer().sendMessage("This arena is full!");
 		                	}else{*/
 		                	
-		                	usedammo.put(p, false);
+		                	usedammo.put(p, getConfig().getInt("config.ammo_usage_count"));
 		                	
 		                	if(!arenaspawn.containsKey(arena)){
 		                		arenaspawn.put(arena, 1);
@@ -811,16 +813,17 @@ public final class Main extends JavaPlugin implements Listener{
 	                	final Player p = event.getPlayer();
 	                	if(arenap.containsKey(p)){
 	                		if(!usedammo.containsKey(p)){
-	                			usedammo.put(p, false);
+	                			usedammo.put(p, getConfig().getInt("config.ammo_usage_count"));
 	                		}
-	                		if(!usedammo.get(p)){
+	                		if(usedammo.get(p) > 0){
 		                		int count = 0;
 		                		count = Integer.parseInt(s.getLine(1));
 		                		p.updateInventory();
 		                		p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, count));
 		                		p.updateInventory();
 		                		p.sendMessage("§3You just got " + s.getLine(1) + " boatballs!");
-		                		usedammo.put(p, true);
+		                		int newcount = usedammo.get(p) - 1;
+		                		usedammo.put(p, newcount);
 		                		return;	
 	                		}else{
 	                			p.sendMessage("§4You already used that ammo sign!");
@@ -1072,7 +1075,7 @@ public final class Main extends JavaPlugin implements Listener{
 	    	
 	    	arenap.remove(p2);
 	    	
-	    	usedammo.put(p2, false);
+	    	usedammo.put(p2, getConfig().getInt("config.ammo_usage_count"));
 
 	    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
 	    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
@@ -1251,7 +1254,7 @@ public final class Main extends JavaPlugin implements Listener{
             }
         }else if(event.getLine(0).toLowerCase().contains("[boat-ammo]")){
         	event.setLine(0, "§2[boat-ammo]");
-        	if(event.getLine(1) == null){
+        	if(event.getLine(1).equalsIgnoreCase("") || event.getLine(1) == null){
         		event.getBlock().breakNaturally();
         		event.getPlayer().sendMessage("§4You need to provide the number of snowballs to be added, when a player rightclicks the sign.");
         	}
@@ -1286,7 +1289,9 @@ public final class Main extends JavaPlugin implements Listener{
 			if(p != null){
 				if(arenap.containsKey(p)){
 					if(!gamestarted.get(arenap.get(p))){
-						event.setCancelled(true);	
+						event.setCancelled(true);
+						p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, 1));
+						p.updateInventory();
 					}else{
 						p.updateInventory();
 						boolean cont = true;
@@ -1360,6 +1365,7 @@ public final class Main extends JavaPlugin implements Listener{
                             }
                             
                             arenaspawn.remove(arena);
+                            arenap.remove(p);
 						}
 					}
 				}
