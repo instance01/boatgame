@@ -19,6 +19,7 @@ public class futask extends BukkitRunnable {
 	private List<Integer> itemid = new ArrayList<Integer>();
 	private int amount = 0;
 	private int snowballstacks = 0;
+	private ItemStack[] savedinv = null;
 	
     public futask(Player pla, Location loc, boolean t, int snowballstacks_amount) {
     	player = pla;
@@ -34,6 +35,14 @@ public class futask extends BukkitRunnable {
     	itemid = itemreward_itemid;
     	amount = itemreward_amount;
     	snowballstacks = snowballstacks_amount;
+    }
+    
+    public futask(Player pla, Location loc, boolean t, int snowballstacks_amount, ItemStack[] pinv) {
+    	player = pla;
+    	locat = loc;
+    	update = t;
+    	snowballstacks = snowballstacks_amount;
+    	savedinv = pinv;
     }
  
     public void run() {
@@ -63,6 +72,10 @@ public class futask extends BukkitRunnable {
 		}
         player.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 1));
         player.updateInventory();
+        
+        if(savedinv != null){
+        	player.getInventory().setContents(savedinv);
+        }
     }
  
     

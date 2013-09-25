@@ -335,14 +335,18 @@ public final class Main extends JavaPlugin implements Listener{
 			        			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
 			        				    	Location t = new Location(w, x, y, z);
 			        			    		
-			        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+			        				    	p.getVehicle().remove();
 			        				    	
+			        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount"), pinv.get(p)).runTaskLater(this, 20);
+
+			        			    		p.sendMessage("§4The arena just got reset by an operator - leaving game..");
 			    	    				}
 			    	    			}
 			    	    			
 			    	    			while (arenap.values().remove(arena));
 			    	    			gamestarted.put(arena, false);
 		        			    	arenaspawn.remove(arena);
+		        			    	
 		        			    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
 		        			    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
 		        			    	// update sign: 
