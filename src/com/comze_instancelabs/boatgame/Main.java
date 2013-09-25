@@ -96,6 +96,7 @@ public final class Main extends JavaPlugin implements Listener{
 	static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>(); // player -> Inventory
 	HashMap<Player, Integer> pspawn = new HashMap<Player, Integer>(); // player -> spawn 1 etc.
 	static HashMap<String, Integer> arenaspawn = new HashMap<String, Integer>(); // arena -> current spawn count
+	static HashMap<Player, Boolean> usedammo = new HashMap<Player, Boolean>(); // player -> used ammo sign or not
 	
 	String arenaname = "";
 	
@@ -372,7 +373,12 @@ public final class Main extends JavaPlugin implements Listener{
     					//getLogger().info("There are " + Integer.toString(arenap.size() - 1) + " Players in the arena now.");
     			    	if(arenap.containsKey(p2)){
     			    		//remove vehicle, remove snowballs, tp away
-    				    	p2.getVehicle().remove();
+    			    		if(p2.getVehicle() != null){
+    			    			p2.getVehicle().remove();	
+    			    		}else{
+    			    			getLogger().severe("[HIGH] SeaBattle: An Error occured, the boat was not found.");
+    			    		}
+    				    	
     				    	
     				    	p2.updateInventory();
     				    	p2.getInventory().setContents(pinv.get(p2));
@@ -635,6 +641,9 @@ public final class Main extends JavaPlugin implements Listener{
 		                	/*if(arenap.size() > 2){
 		                		event.getPlayer().sendMessage("This arena is full!");
 		                	}else{*/
+		                	
+		                	usedammo.put(p, false);
+		                	
 		                	if(!arenaspawn.containsKey(arena)){
 		                		arenaspawn.put(arena, 1);
 		                		pspawn.put(p, 1);
@@ -801,13 +810,22 @@ public final class Main extends JavaPlugin implements Listener{
 	                }else if(s.getLine(0).equalsIgnoreCase("§2[boat-ammo]")){ //end of if s.getline .. [BOAT]
 	                	final Player p = event.getPlayer();
 	                	if(arenap.containsKey(p)){
-	                		int count = 0;
-	                		count = Integer.parseInt(s.getLine(1));
-	                		p.updateInventory();
-	                		p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, count));
-	                		p.updateInventory();
-	                		p.sendMessage("§3You just got " + s.getLine(1) + " boatballs!");
-	                		return;
+	                		if(!usedammo.containsKey(p)){
+	                			usedammo.put(p, false);
+	                		}
+	                		if(!usedammo.get(p)){
+		                		int count = 0;
+		                		count = Integer.parseInt(s.getLine(1));
+		                		p.updateInventory();
+		                		p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, count));
+		                		p.updateInventory();
+		                		p.sendMessage("§3You just got " + s.getLine(1) + " boatballs!");
+		                		usedammo.put(p, true);
+		                		return;	
+	                		}else{
+	                			p.sendMessage("§4You already used that ammo sign!");
+	                			return;
+	                		}
 	                	}
 	                }
 	              
@@ -1054,6 +1072,7 @@ public final class Main extends JavaPlugin implements Listener{
 	    	
 	    	arenap.remove(p2);
 	    	
+	    	usedammo.put(p2, false);
 
 	    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
 	    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
