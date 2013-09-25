@@ -146,6 +146,7 @@ public final class Main extends JavaPlugin implements Listener{
 		getConfig().addDefault("strings.reload", "§2Boatgame config successfully reloaded.");
 		getConfig().addDefault("strings.nothing", "§4This command action was not found.");
 		
+		getConfig().addDefault("tpthem.null", "");
 		getConfig().options().copyDefaults(true);
 		this.saveDefaultConfig();
 		this.saveConfig();
@@ -174,6 +175,24 @@ public final class Main extends JavaPlugin implements Listener{
         if(getConfig().getBoolean("config.auto_updating")){
         	Updater updater = new Updater(this, "sea-battle", this.getFile(), Updater.UpdateType.DEFAULT, false);
         }
+        
+        for(String p_ : getConfig().getConfigurationSection("tpthem.").getKeys(false)){
+        	if(Bukkit.getOfflinePlayer(p_).isOnline()){
+        		Player p = Bukkit.getPlayer(p_);
+        		String arena = getConfig().getString("tpthem." + p_);
+        		
+        		Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+    	    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+    	    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+        		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+    	    	Location t = new Location(w, x, y, z);
+    	    	
+        		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+        	
+        		getConfig().set("tpthem." + p_, null);
+        		this.saveConfig();
+        	}
+        }
     }
 
     @Override
@@ -184,13 +203,15 @@ public final class Main extends JavaPlugin implements Listener{
     	    	p2.getVehicle().remove();
     	    	
     	    	p2.updateInventory();
-    	    	for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+    	    	for(int i_ = 0; i_ < getConfig().getInt("config.snowballstacks_amount") + 1; i_++){
     				p2.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
     			}
     	    	p2.getInventory().setContents(pinv.get(p2));
     	    	p2.updateInventory();
     	    	
     	    	tpthem.put(p2.getName(), arenap.get(p2));
+    	    	getConfig().set("tpthem." + p2.getName(), arenap.get(p2));
+    	    	this.saveConfig();
     	    	
     	    	if(p2.isOnline()){
 	    	    	Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
@@ -198,8 +219,8 @@ public final class Main extends JavaPlugin implements Listener{
 	    	    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
 	        		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
 	    	    	Location t = new Location(w, x, y, z);
-	        		
-	        		BukkitTask task = new futask(p2, t, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+	    	    	
+	    	    	p2.teleport(t);
     	    	}
     	    	arenap.remove(p2);
     	    	
@@ -209,10 +230,11 @@ public final class Main extends JavaPlugin implements Listener{
     	    	// update sign: 
                 if(s != null && s.getLine(3) != ""){
                 	String d = s.getLine(3).split("/")[0];
-                	getLogger().info(d);
+                	getLogger().info("ASDF" + d);
                 	int bef = Integer.parseInt(d);
                 	if(bef > 0){
                 		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
+                		s.setLine(2, "§2Join");
                 		s.update();
                 	}
                 }
@@ -758,12 +780,12 @@ public final class Main extends JavaPlugin implements Listener{
 	            			}
 	            			
 	                	}else{
-	                		final String arena = s.getLine(i + 1);
+	                		final String arena = s.getLine(1);
 			                //Auto fix: If player rightclicks on a screwed boatgame sign, it "repairs" itself.
 		        			//getLogger().info("ARENAP COUNT: " + Integer.toString(arenap.values().size()));
 		                	// no players in given arena anymore -> update sign
 		        	    	if(!arenap.values().contains(arena)){
-		        	    		s.setLine(2, "§2Join!");
+		        	    		s.setLine(2, "§2Join");
 		        	    		s.setLine(3, "0/" + Integer.toString(getConfig().getInt("config.maxplayers")));
 		        	    		s.update();
 		        	    	}
@@ -1263,8 +1285,7 @@ public final class Main extends JavaPlugin implements Listener{
 							}
 						}
 						if(cont){
-							// player doesn't have any snowballs any more -> lose
-							//TODO: test out
+							// player doesn't have any snowballs any more -> lost
 							p.sendMessage("§3You've lost the boatgame, all your snowballs are spent. :(");
 							
 							String arena = arenap.get(p);
