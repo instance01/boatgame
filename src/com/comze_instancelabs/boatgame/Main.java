@@ -123,7 +123,7 @@ public final class Main extends JavaPlugin implements Listener{
 		getConfig().addDefault("config.auto_updating", true);
 		getConfig().addDefault("config.announce_winners", true);
 		getConfig().addDefault("config.lastmanstanding", true);
-		getConfig().addDefault("config.ammo_usage_count", 2);
+		getConfig().addDefault("config.ammo_sign_usage_count", 2);
 		//getConfig().addDefault("config.saveandclearinventory", false);
 		
 		// TODO: new
@@ -377,7 +377,7 @@ public final class Main extends JavaPlugin implements Listener{
     			    		if(p2.getVehicle() != null){
     			    			p2.getVehicle().remove();	
     			    		}else{
-    			    			getLogger().severe("[HIGH] SeaBattle: An Error occured, the boat was not found.");
+    			    			getLogger().severe("[HIGH] -SeaBattle- An Error occured: boat was not found.");
     			    		}
     				    	
     				    	
@@ -488,7 +488,9 @@ public final class Main extends JavaPlugin implements Listener{
 	                		            				last.updateInventory();
 	                		            			}
 	                		                    }
-	                	            		}	
+	                	            		}
+	                                		
+	                                		gamestarted.put(arena, false);
 	                            		}
 	                            	}	
                             	}
@@ -504,6 +506,7 @@ public final class Main extends JavaPlugin implements Listener{
                             			
                             		}
                             		secs_.remove(arena);
+                            		gamestarted.put(arena, false);
                             	}
                             }
     				    }
@@ -644,7 +647,7 @@ public final class Main extends JavaPlugin implements Listener{
 		                		event.getPlayer().sendMessage("This arena is full!");
 		                	}else{*/
 		                	
-		                	usedammo.put(p, getConfig().getInt("config.ammo_usage_count"));
+		                	usedammo.put(p, getConfig().getInt("config.ammo_sign_usage_count"));
 		                	
 		                	if(!arenaspawn.containsKey(arena)){
 		                		arenaspawn.put(arena, 1);
@@ -813,7 +816,7 @@ public final class Main extends JavaPlugin implements Listener{
 	                	final Player p = event.getPlayer();
 	                	if(arenap.containsKey(p)){
 	                		if(!usedammo.containsKey(p)){
-	                			usedammo.put(p, getConfig().getInt("config.ammo_usage_count"));
+	                			usedammo.put(p, getConfig().getInt("config.ammo_sign_usage_count"));
 	                		}
 	                		if(usedammo.get(p) > 0){
 		                		int count = 0;
@@ -1075,7 +1078,7 @@ public final class Main extends JavaPlugin implements Listener{
 	    	
 	    	arenap.remove(p2);
 	    	
-	    	usedammo.put(p2, getConfig().getInt("config.ammo_usage_count"));
+	    	usedammo.put(p2, getConfig().getInt("config.ammo_sign_usage_count"));
 
 	    	Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
 	    	Sign s = (Sign)Bukkit.getWorld(getConfig().getString(arena + ".sign.world")).getBlockAt(b).getState();
@@ -1161,7 +1164,7 @@ public final class Main extends JavaPlugin implements Listener{
 	    		            				last.updateInventory();
 	    		            			}
 	    		                    }
-	    	            		}	
+	    	            		}
 	                		}
 	            		}
 	            	}	
@@ -1339,8 +1342,15 @@ public final class Main extends JavaPlugin implements Listener{
     				        for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
     		    				p.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
     		    			}
-    				        p.getInventory().setContents(pinv.get(p));
     				        p.updateInventory();
+    				        
+    				        final Player p_ = p;
+    				        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+    		    				public void run(){
+    		    					p_.getInventory().setContents(pinv.get(p_));
+    	    				        p_.updateInventory();
+    		    				}
+    		    			}, 10);
     				        
 
     				        Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
@@ -1366,6 +1376,7 @@ public final class Main extends JavaPlugin implements Listener{
                             
                             arenaspawn.remove(arena);
                             arenap.remove(p);
+                            gamestarted.put(arena, false);
 						}
 					}
 				}
@@ -1377,7 +1388,9 @@ public final class Main extends JavaPlugin implements Listener{
     public void onPlayerMove(PlayerMoveEvent event) {
     	final Player p = event.getPlayer();
     	if(p != null && arenap.containsKey(p) && !gamestarted.get(arenap.get(p))){
+    	//if(p != null && arenap.containsKey(p)){
     		if(!gamestarted.get(arenap.get(p))){
+    			
 	    		String arena = arenap.get(p);
 	    		String spawnstr = ".spawn" + Integer.toString(pspawn.get(p));
 	    		
