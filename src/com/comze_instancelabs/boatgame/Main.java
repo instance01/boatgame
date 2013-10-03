@@ -233,7 +233,6 @@ public final class Main extends JavaPlugin implements Listener{
     	    	// update sign: 
                 if(s != null && s.getLine(3) != ""){
                 	String d = s.getLine(3).split("/")[0];
-                	getLogger().info("ASDF" + d);
                 	int bef = Integer.parseInt(d);
                 	if(bef > 0){
                 		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
@@ -338,7 +337,9 @@ public final class Main extends JavaPlugin implements Listener{
 			        			    		World w = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
 			        				    	Location t = new Location(w, x, y, z);
 			        			    		
-			        				    	p.getVehicle().remove();
+			        				    	if(p.isInsideVehicle()){
+			        				    		p.getVehicle().remove();
+			        				    	}
 			        				    	
 			        			    		BukkitTask task = new futask(p, t, false, getConfig().getInt("config.snowballstacks_amount"), pinv.get(p)).runTaskLater(this, 20);
 
@@ -642,10 +643,11 @@ public final class Main extends JavaPlugin implements Listener{
 		                	//add player to hashmap
 		                	final String arena = s.getLine(i + 1);
 		                	final Player p = event.getPlayer();
-		                	//event.getPlayer().sendMessage(arena + " " + Integer.toString(arenap.size()) + " " + Boolean.toString(whichspawn));
-		                	/*if(arenap.size() > 2){
-		                		event.getPlayer().sendMessage("This arena is full!");
-		                	}else{*/
+
+		                	if(!validArena(arena)){
+		                		p.sendMessage("§4This arena is not set up properly! :(");
+		                		return;
+		                	}
 		                	
 		                	usedammo.put(p, getConfig().getInt("config.ammo_sign_usage_count"));
 		                	
@@ -923,7 +925,9 @@ public final class Main extends JavaPlugin implements Listener{
     		    			}
     		    			p.sendMessage(getConfig().getString("strings.won"));
     		    			
-        			    	p.getVehicle().remove();
+    		    			if(p.isInsideVehicle()){
+    		    				p.getVehicle().remove();
+    		    			}
         			    	
         			    	if(getConfig().getBoolean("config.teams")){
 	        			    	p.getInventory().setHelmet(null);
@@ -949,7 +953,7 @@ public final class Main extends JavaPlugin implements Listener{
         			    	Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
         			    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
         			    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
-        	
+        			    	
         			    	Location b_ = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
         			    	//getLogger().info(b_.toString());
         			    	BlockState bs = b_.getBlock().getState();
@@ -986,7 +990,9 @@ public final class Main extends JavaPlugin implements Listener{
         			    		}else{
         			    			otp.sendMessage(getConfig().getString("strings.lost"));
         			    		}
-        			    		otp.getVehicle().remove();
+        			    		if(otp.isInsideVehicle()){
+        			    			otp.getVehicle().remove();	
+        			    		}
         			    		if(getConfig().getBoolean("config.teams")){
         			    			otp.getInventory().setHelmet(null);
         			    			otp.updateInventory();
@@ -1293,8 +1299,8 @@ public final class Main extends JavaPlugin implements Listener{
 				if(arenap.containsKey(p)){
 					if(!gamestarted.get(arenap.get(p))){
 						event.setCancelled(true);
-						p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, 1));
-						p.updateInventory();
+						//p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, 1));
+						//p.updateInventory();
 					}else{
 						p.updateInventory();
 						boolean cont = true;
@@ -1326,7 +1332,10 @@ public final class Main extends JavaPlugin implements Listener{
         			    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
         			    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
 							
-							p.getVehicle().remove();
+        			    	if(p.isInsideVehicle()){
+        			    		p.getVehicle().remove();
+        			    	}
+							
     			    		if(getConfig().getBoolean("config.teams")){
     			    			p.getInventory().setHelmet(null);
     			    			p.updateInventory();
@@ -1393,6 +1402,7 @@ public final class Main extends JavaPlugin implements Listener{
     			
 	    		String arena = arenap.get(p);
 	    		String spawnstr = ".spawn" + Integer.toString(pspawn.get(p));
+	    		
 	    		
 	    		Location currentspawn = new Location(Bukkit.getWorld(getConfig().getString(arena + spawnstr + ".world")), getConfig().getDouble(arena + spawnstr + ".x"), getConfig().getDouble(arena + spawnstr + ".y"), getConfig().getDouble(arena + spawnstr + ".z"));
 	    		
@@ -1514,6 +1524,18 @@ public final class Main extends JavaPlugin implements Listener{
 				event.getPlayer().sendMessage("§3You're in a SeaBattle game. Please use /sb leave to leave the minigame.");
 			}
 		}
+	}
+    
+    
+    
+	public boolean validArena(String arena) {
+		if (getConfig().isSet(arena + ".sign")
+				&& getConfig().isSet(arena + ".world")
+				&& getConfig().isSet(arena + ".lobbyspawn")
+				&& getConfig().isSet(arena + ".spawn1")) {
+			return true;
+		}
+		return false;
 	}
 
 }
