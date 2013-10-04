@@ -1294,101 +1294,103 @@ public final class Main extends JavaPlugin implements Listener{
 	@EventHandler
 	public void onProjectileThrownEvent(ProjectileLaunchEvent event) {
 		if (event.getEntity() instanceof Snowball) {
-			Player p = (Player)event.getEntity().getShooter();
-			if(p != null){
-				if(arenap.containsKey(p)){
-					if(!gamestarted.get(arenap.get(p))){
-						event.setCancelled(true);
-						//p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, 1));
-						//p.updateInventory();
-					}else{
-						p.updateInventory();
-						boolean cont = true;
-						int count = 0;
-						for(ItemStack item : p.getInventory().getContents())
-						{
-						    if(item != null){
-						    	count += 1;
-						    	cont = false;
-						    }
-						}
-						if(count < 2){
+			if(event.getEntity().getShooter() instanceof Player){
+				Player p = (Player)event.getEntity().getShooter();
+				if(p != null){
+					if(arenap.containsKey(p)){
+						if(!gamestarted.get(arenap.get(p))){
+							event.setCancelled(true);
+							//p.getInventory().addItem(new ItemStack(Material.SNOW_BALL, 1));
+							//p.updateInventory();
+						}else{
+							p.updateInventory();
+							boolean cont = true;
+							int count = 0;
 							for(ItemStack item : p.getInventory().getContents())
 							{
 							    if(item != null){
-							    	if(item.getAmount() < 2){
-							    		cont = true;
-							    	}
+							    	count += 1;
+							    	cont = false;
 							    }
 							}
-						}
-						if(cont){
-							// player doesn't have any snowballs any more -> lost
-							p.sendMessage("§3You've lost the boatgame, all your snowballs are spent. :(");
-							
-							String arena = arenap.get(p);
-							
-							Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
-        			    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
-        			    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
-							
-        			    	if(p.isInsideVehicle()){
-        			    		p.getVehicle().remove();
-        			    	}
-							
-    			    		if(getConfig().getBoolean("config.teams")){
-    			    			p.getInventory().setHelmet(null);
-    			    			p.updateInventory();
-        			    	}
-    			    		
-    				    	World w2 = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
-    				    	
-    				    	Location t2 = new Location(w2, x, y, z);
-    				    	//otp.teleport(t2);
-    				        BukkitTask task1 = new futask(p, t2, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
-    				        
-    				        p.updateInventory();
-    				        for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
-    		    				p.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
-    		    			}
-    				        p.updateInventory();
-    				        
-    				        final Player p_ = p;
-    				        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-    		    				public void run(){
-    		    					p_.getInventory().setContents(pinv.get(p_));
-    	    				        p_.updateInventory();
-    		    				}
-    		    			}, 10);
-    				        
-
-    				        Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
-    				        getLogger().info(b.toString());
-    				        BlockState bs_ = b.getBlock().getState();
-        			    	Sign s = null;
-        			    	if(bs_ instanceof Sign){
-        			    		s = (Sign)bs_;
-        			    	}else{
-        			    		getLogger().info(bs_.getBlock().toString());
-        			    	}
-    				    	// update sign:
-                            if(s != null && s.getLine(3) != ""){
-                            	String d = s.getLine(3).split("/")[0];
-                            	//getLogger().info(d);
-                            	int bef = Integer.parseInt(d);
-                            	if(bef > 0){
-                            		s.setLine(2, "§2Join");
-                            		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
-                            		s.update();
-                            	}
-                            }
-                            
-                            arenaspawn.remove(arena);
-                            arenap.remove(p);
-                            gamestarted.put(arena, false);
+							if(count < 2){
+								for(ItemStack item : p.getInventory().getContents())
+								{
+								    if(item != null){
+								    	if(item.getAmount() < 2){
+								    		cont = true;
+								    	}
+								    }
+								}
+							}
+							if(cont){
+								// player doesn't have any snowballs any more -> lost
+								p.sendMessage("§3You've lost the boatgame, all your snowballs are spent. :(");
+								
+								String arena = arenap.get(p);
+								
+								Double x = getConfig().getDouble(arena + ".lobbyspawn.x");
+	        			    	Double y = getConfig().getDouble(arena + ".lobbyspawn.y");
+	        			    	Double z = getConfig().getDouble(arena + ".lobbyspawn.z");
+								
+	        			    	if(p.isInsideVehicle()){
+	        			    		p.getVehicle().remove();
+	        			    	}
+								
+	    			    		if(getConfig().getBoolean("config.teams")){
+	    			    			p.getInventory().setHelmet(null);
+	    			    			p.updateInventory();
+	        			    	}
+	    			    		
+	    				    	World w2 = Bukkit.getWorld(getConfig().getString(arena + ".lobbyspawn.world"));
+	    				    	
+	    				    	Location t2 = new Location(w2, x, y, z);
+	    				    	//otp.teleport(t2);
+	    				        BukkitTask task1 = new futask(p, t2, false, getConfig().getInt("config.snowballstacks_amount")).runTaskLater(this, 20);
+	    				        
+	    				        p.updateInventory();
+	    				        for(int i_ = 0; i_ < getConfig().getInt("config.config.snowballstacks_amount") + 1; i_++){
+	    		    				p.getInventory().removeItem(new ItemStack(Material.SNOW_BALL, 64));	
+	    		    			}
+	    				        p.updateInventory();
+	    				        
+	    				        final Player p_ = p;
+	    				        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+	    		    				public void run(){
+	    		    					p_.getInventory().setContents(pinv.get(p_));
+	    	    				        p_.updateInventory();
+	    		    				}
+	    		    			}, 10);
+	    				        
+	
+	    				        Location b = new Location(Bukkit.getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getDouble(arena + ".sign.x"),getConfig().getDouble(arena + ".sign.y"), getConfig().getDouble(arena + ".sign.z"));
+	    				        getLogger().info(b.toString());
+	    				        BlockState bs_ = b.getBlock().getState();
+	        			    	Sign s = null;
+	        			    	if(bs_ instanceof Sign){
+	        			    		s = (Sign)bs_;
+	        			    	}else{
+	        			    		getLogger().info(bs_.getBlock().toString());
+	        			    	}
+	    				    	// update sign:
+	                            if(s != null && s.getLine(3) != ""){
+	                            	String d = s.getLine(3).split("/")[0];
+	                            	//getLogger().info(d);
+	                            	int bef = Integer.parseInt(d);
+	                            	if(bef > 0){
+	                            		s.setLine(2, "§2Join");
+	                            		s.setLine(3, Integer.toString(bef - 1) + "/" + getConfig().getString("config.maxplayers"));
+	                            		s.update();
+	                            	}
+	                            }
+	                            
+	                            arenaspawn.remove(arena);
+	                            arenap.remove(p);
+	                            gamestarted.put(arena, false);
+							}
 						}
 					}
-				}
+				}	
 			}
 		}
 	}
