@@ -176,7 +176,8 @@ public final class Main extends JavaPlugin implements Listener{
         }
         
         if(getConfig().getBoolean("config.auto_updating")){
-        	Updater updater = new Updater(this, "sea-battle", this.getFile(), Updater.UpdateType.DEFAULT, false);
+        	//Updater updater = new Updater(this, "sea-battle", this.getFile(), Updater.UpdateType.DEFAULT, false);
+        	Updater updater = new Updater(this, 60894, this.getFile(), Updater.UpdateType.DEFAULT, false);
         }
         
         for(String p_ : getConfig().getConfigurationSection("tpthem.").getKeys(false)){
