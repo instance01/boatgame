@@ -1278,11 +1278,13 @@ public final class Main extends JavaPlugin implements Listener{
     		//event.setCancelled(true);
             Sign s = (Sign) event.getBlock().getState();
             if(s.getLine(0).equalsIgnoreCase("§2[Boat]") && s.getLine(1) != ""){
-            	event.setCancelled(true);
-	            String name = s.getLine(1);
-	            getConfig().set(name + ".sign", null);
-	            event.getPlayer().sendMessage("§2Don't forget to set a new sign for the boatarena!");
-	            event.getBlock().breakNaturally();
+            	if(event.getPlayer().hasPermission("boatgame.sign")){
+	            	event.setCancelled(true);
+		            String name = s.getLine(1);
+		            getConfig().set(name + ".sign", null);
+		            event.getPlayer().sendMessage("§2Don't forget to set a new sign for the boatarena!");
+		            event.getBlock().breakNaturally();
+            	}
             }
         }else{
         	//if(event.getPlayer().getGameMode() != GameMode.CREATIVE){
