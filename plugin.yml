@@ -1,6 +1,6 @@
 name: SeaBattle
 main: com.comze_instancelabs.boatgame.Main
-version: 1.5.4
+version: 1.6
 author: instancelabs
 softdepend: [Vault]
 permissions:
