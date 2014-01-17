@@ -72,13 +72,7 @@ import net.milkbowl.vault.economy.EconomyResponse;
  */
 
 public final class Main extends JavaPlugin implements Listener{
-	
-	//TODO: Features
 
-	
-	//TODO: BUGS
-	// [LOW] When player holding solid blocks like cobblestone (which can be placed), snowballs won't be added, because interaction with sign fails
-	
 	
 	public static Economy econ = null;
 	public boolean economy = false;
@@ -98,7 +92,6 @@ public final class Main extends JavaPlugin implements Listener{
 	static HashMap<String, Integer> arenaspawn = new HashMap<String, Integer>(); // arena -> current spawn count
 	static HashMap<Player, Integer> usedammo = new HashMap<Player, Integer>(); // player -> Usage count of ammo signs
 	
-	String arenaname = "";
 	
 	@Override
     public void onEnable(){
@@ -276,7 +269,6 @@ public final class Main extends JavaPlugin implements Listener{
 	    	    			this.getConfig().set(args[1] + ".name", args[1]);
 	    	    			this.getConfig().set(args[1] + ".world", temp.getWorld().getName());
 	    	    			this.saveConfig();
-	    	    			arenaname = args[1];
 	    	    			sender.sendMessage(getConfig().getString("strings.createarena"));
     	                }else{
     	                	sender.sendMessage(getConfig().getString("strings.nopermission"));
